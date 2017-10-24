@@ -1,4 +1,4 @@
-from typing import Dict, List, NamedTuple
+from typing import Dict, List, NamedTuple, Optional
 from roboscaffold_sim.state.block_states import BuildingBlockState, ScaffoldState
 from roboscaffold_sim.message.message_queue import MessageQueue
 from roboscaffold_sim.state.builder_state import BuilderState
@@ -9,7 +9,7 @@ import copy
 SBlocks = Dict[Coordinate, ScaffoldState]
 BBlocks = Dict[Coordinate, BuildingBlockState]
 Robots = Dict[Coordinate, BuilderState]
-Coordinates = List[Coordinate]
+Coordinates = List[Optional[Coordinate]]
 
 
 class GoalType(Enum):
@@ -24,7 +24,7 @@ class Goal(NamedTuple):
     type: GoalType
 
 
-Goals = List[Goal]
+Goals = List[Optional[Goal]]
 
 
 class SimulationState:
@@ -35,14 +35,14 @@ class SimulationState:
         self.robots: Robots = dict()
 
         self.target_structure: Coordinates = []
-        self.goal_stack = []
+        self.goal_stack: Goals = []
 
         self.messages: MessageQueue = MessageQueue()
         self.builder: BuilderState = BuilderState()
 
     @staticmethod
     def create_base_sim(structure: Coordinates = list()):
-        sim = SimulationState()
+        sim: SimulationState = SimulationState()
 
         sim.s_blocks[Coordinate(0, 0)] = ScaffoldState()
         sim.robots[Coordinate(0, 0)] = BuilderState()

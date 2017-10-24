@@ -174,4 +174,4 @@ class Board(tk.Frame):
                                      x+corner_dist, y+corner_dist,
                                      tags='goal', outline=color,
                                      width=self.goal_line_width,
-                                     dash=(6, 12), dashoffset=2)
+                                     dash=".")

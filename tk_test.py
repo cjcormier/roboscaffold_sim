@@ -13,7 +13,7 @@ board.draw_grid()
 i = 0
 
 
-def get_next_coord():
+def get_next_coord() -> Coordinate:
     global i
     next_coord = Coordinate(i % 10, i // 10)
     i += 1
