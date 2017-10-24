@@ -8,19 +8,27 @@ import copy
 SBlocks = Dict[Coordinate, ScaffoldState]
 BBlocks = Dict[Coordinate, BuildingBlockState]
 Robots = Dict[Coordinate, BuilderState]
+Coordinates = List[Coordinate]
 
 
 class SimulationState:
     def __init__(self):
         self.finished: bool = False
-        seed_coord = Coordinate(0, 0)
-        self.s_blocks: SBlocks = {seed_coord: ScaffoldState()}
-        self.b_blocks: BBlocks = {()}
+        self.s_blocks: SBlocks = dict()
+        self.b_blocks: BBlocks = dict()
+        self.robots: Robots = dict()
+        self.goal_structure: Coordinates = []
 
         self.messages: MessageQueue = MessageQueue()
         self.builder: BuilderState = BuilderState()
 
-        self.builder_location = Coordinate(0, 0)
+    @staticmethod
+    def create_base_sim(goal: Coordinates = list()):
+        sim = SimulationState()
+
+        sim.s_blocks[Coordinate(0, 0)] = ScaffoldState()
+        sim.robots[Coordinate(0, 0)] = BuilderState()
+        sim.goal_structure = goal
 
     def update(self):
         pass
