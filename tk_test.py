@@ -12,11 +12,12 @@ board.grid()
 board.draw_grid()
 i = 0
 
+
 def get_next_coord():
     global i
-    coord = Coordinate(i % 10, i // 10)
+    next_coord = Coordinate(i % 10, i // 10)
     i += 1
-    return coord
+    return next_coord
 
 
 s_blocks = {}

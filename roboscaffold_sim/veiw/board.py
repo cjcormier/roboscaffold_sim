@@ -6,8 +6,7 @@ from roboscaffold_sim.coordinate import Coordinate
 from roboscaffold_sim.direction import Direction
 from roboscaffold_sim.state.block_states import ScaffoldInstruction
 from roboscaffold_sim.state.builder_state import HeldBlock, BuilderState
-from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots
-
+from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots, GoalType, Goal, Goals
 
 Color = str
 
@@ -23,6 +22,7 @@ class Board(tk.Frame):
 
         self.line_width = 3
         self.block_line_width = 4
+        self.goal_line_width = 3
         self.block_gap = 3
         self.robot_gap = self.block_line_width + 3
 
@@ -47,6 +47,13 @@ class Board(tk.Frame):
             ScaffoldInstruction.DROP_LEFT: '#f00',
             ScaffoldInstruction.DROP_RIGHT: '#0f0',
             ScaffoldInstruction.DROP_FORWARD: '#00f'
+        }
+
+        self.goal_colors = {
+            GoalType.PLACE_BUILD_BLOCK: '#fff',
+            GoalType.PLACE_SCAFFOLD: '#fff',
+            GoalType.PICK_BUILD_BLOCK: '#fff',
+            GoalType.PICK_SCAFFOLD: '#fff',
         }
 
         self.builder_colors = {
@@ -109,10 +116,10 @@ class Board(tk.Frame):
             vert_offsets = [edge_size, 0, edge_size, edge_size, 0, half_edge_size]
         return tuple(map(add, [x-half_edge_size, y-half_edge_size] * 3, vert_offsets))
 
-    def draw_sim(self, s_blocks: SBlocks, b_blocks: BBlocks, robots: Robots):
-        self.draw_s_blocks(s_blocks)
-        self.draw_b_blocks(b_blocks)
-        self.draw_robots(robots)
+    def draw_sim(self, sim):
+        self.draw_s_blocks(sim.s_blocks)
+        self.draw_b_blocks(sim.b_blocks)
+        self.draw_robots(sim.robots)
 
     def draw_s_blocks(self, s_blocks: SBlocks):
         for coord, block in s_blocks.items():
@@ -124,13 +131,14 @@ class Board(tk.Frame):
         for coord, block in b_blocks.items():
             self.draw_block(coord, self.block_color, self.block_color)
 
-    def draw_block(self, coord: Coordinate, fill: Color, outline: Color):
+    def draw_block(self, coord: Coordinate, fill: Color, outline: Color, tags=()):
         edge_size = self.grid_size - 2*self.block_line_width - 2*self.block_gap
         corner_dist = (edge_size+1)//2
         x, y = self.get_grid_center(coord)
 
         self.canvas.create_rectangle(x-corner_dist, y-corner_dist,
                                      x+corner_dist, y+corner_dist,
+                                     tags=('block', *tags),
                                      fill=fill, outline=outline,
                                      width=self.block_line_width)
 
@@ -149,4 +157,21 @@ class Board(tk.Frame):
         fill = self.builder_colors[robot.held_block]
         outline = self.robot_color
 
-        self.canvas.create_polygon(*vertices, fill=fill, outline=outline)
+        self.canvas.create_polygon(*vertices, fill=fill, outline=outline,
+                                   tag='robot')
+
+    def draw_goals(self, goals: Goals):
+        for goal in goals:
+            self.draw_goal(goal)
+
+    def draw_goal(self, goal: Goal):
+        edge_size = self.grid_size - 2*self.block_line_width - 2*self.block_gap
+        corner_dist = (edge_size+1)//2
+        x, y = self.get_grid_center(goal.coord)
+        color = self.goal_colors[goal.type]
+
+        self.canvas.create_rectangle(x-corner_dist, y-corner_dist,
+                                     x+corner_dist, y+corner_dist,
+                                     tags='goal', outline=color,
+                                     width=self.goal_line_width,
+                                     dash=(6, 12), dashoffset=2)
