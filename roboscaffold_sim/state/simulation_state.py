@@ -11,6 +11,7 @@ BBlocks = Dict[Coordinate, BuildingBlockState]
 
 class SimulationState:
     def __init__(self):
+        self.finished: bool = False
         seed_coord = Coordinate(0, 0)
         self.s_blocks: SBlocks = {seed_coord: ScaffoldState()}
         self.b_blocks: BBlocks = {()}
@@ -25,14 +26,18 @@ class SimulationState:
 
 
 class SimulationStateList:
-    def __init__(self):
-        self.working_state: SimulationState = SimulationState()
-        self.states: List[SimulationState] = []
+    def __init__(self, initial_state: SimulationState):
+        self._working_state: SimulationState = initial_state
+        self.states: List[SimulationState] = [copy.deepcopy(self._working_state)]
 
     def update(self):
-        self.states.append(copy.deepcopy(self.working_state))
-        self.working_state.update()
+        if not self._working_state.finished:
+            self._working_state.update()
+            self.states.append(copy.deepcopy(self._working_state))
 
     def update_loop(self, max_rounds: int = 1000):
         for _ in range(max_rounds):
-            self.update()
+            if self._working_state.finished:
+                break
+            else:
+                self.update()
