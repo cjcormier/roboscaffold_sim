@@ -1,10 +1,11 @@
 from typing import List
 
 import pyglet
+import tkinter as tk
 
 from roboscaffold_sim.coordinate import Coordinate
 from roboscaffold_sim.direction import Direction
-from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
+from roboscaffold_sim.state.builder_state import HeldBlock, BuilderState
 from roboscaffold_sim.state.block_states import ScaffoldInstruction
 
 from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, SimulationState
@@ -60,6 +61,12 @@ builder_colors = {
 
 state_counter_square_color = [128, 128, 128]
 state_counter_arrow_color = [255, 255, 255]
+
+
+class MainApplication(tk.Frame):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
 
 
 def initialize_grid():

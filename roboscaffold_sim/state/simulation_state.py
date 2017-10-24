@@ -7,6 +7,7 @@ import copy
 
 SBlocks = Dict[Coordinate, ScaffoldState]
 BBlocks = Dict[Coordinate, BuildingBlockState]
+Robots = Dict[Coordinate, BuilderState]
 
 
 class SimulationState:

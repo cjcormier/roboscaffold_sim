@@ -1,8 +1,10 @@
+from roboscaffold_sim.state.builder_state import BuilderState
 from roboscaffold_sim.veiw.veiw import *
 from roboscaffold_sim.state.block_states import ScaffoldState, BuildingBlockState
 from pyglet.window.mouse import LEFT
 
 window = pyglet.window.Window(800, 600, caption='Robotic Scaffolding Simulation')
+
 
 @window.event
 def on_draw():
@@ -29,7 +31,6 @@ def on_draw():
             draw_robot(Coordinate(i % 10, i//10), robot)
             i += 1
 
-
     draw_state_counter("{}/9999+".format(state_count))
 
 
@@ -41,6 +42,7 @@ def on_mouse_press(x, y, button, modifiers):
             state_count -= 1
         elif within_state_counter_button_right(x, y):
             state_count += 1
+
 
 state_count = 0
 pyglet.gl.glLineWidth(line_width)

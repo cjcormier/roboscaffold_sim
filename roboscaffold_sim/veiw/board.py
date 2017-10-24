@@ -1,0 +1,152 @@
+import tkinter as tk
+from operator import add
+from typing import Tuple, List
+
+from roboscaffold_sim.coordinate import Coordinate
+from roboscaffold_sim.direction import Direction
+from roboscaffold_sim.state.block_states import ScaffoldInstruction
+from roboscaffold_sim.state.builder_state import HeldBlock, BuilderState
+from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots
+
+
+Color = str
+
+
+class Board(tk.Frame):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+
+        self.rows = 10
+        self.columns = 10
+        self.grid_size = 50
+
+        self.line_width = 3
+        self.block_line_width = 4
+        self.block_gap = 3
+        self.robot_gap = self.block_line_width + 3
+
+        self.grid_color = "#000"
+        self.s_block_color = '#000'
+        self.b_block_color = '#fff'
+        self.block_color = '#000'
+        self.robot_color = None
+        self.background_color = '#888'
+
+        self.scaffold_colors = {
+            ScaffoldInstruction.NONE: '#888',
+            ScaffoldInstruction.STOP: '#FFF',
+
+            ScaffoldInstruction.DRIVE_LEFT: '#800',
+            ScaffoldInstruction.DRIVE_RIGHT: '#080',
+
+            ScaffoldInstruction.PICK_LEFT: '#ff0',
+            ScaffoldInstruction.PICK_RIGHT: '#0ff',
+            ScaffoldInstruction.PICK_FORWARD: '#f0f',
+
+            ScaffoldInstruction.DROP_LEFT: '#f00',
+            ScaffoldInstruction.DROP_RIGHT: '#0f0',
+            ScaffoldInstruction.DROP_FORWARD: '#00f'
+        }
+
+        self.builder_colors = {
+            HeldBlock.BUILD: self.b_block_color,
+            HeldBlock.SCAFFOLD: self.s_block_color,
+            HeldBlock.NONE: '#888'
+        }
+
+        self.canvas = tk.Canvas(self, width=600, height=600)
+        self.canvas.configure(background=self.background_color)
+        self.canvas.grid()
+
+    def draw_grid(self):
+        previous_grid = self.canvas.find_withtag('grid')
+        self.canvas.delete(previous_grid)
+
+        column_offset = self.grid_size * self.rows + self.line_width
+        row_offset = self.grid_size * self.columns + self.line_width
+
+        base_offset = (self.line_width + 1) // 2
+
+        for column in range(self.columns+1):
+            x1 = base_offset + self.grid_size*column
+            y1 = base_offset
+            x2 = base_offset + self.grid_size*column
+            y2 = column_offset
+            self.canvas.create_line(x1, y1, x2, y2, fill=self.grid_color,
+                                    tags='grid', width=self.line_width)
+
+        for row in range(self.rows+1):
+            x1 = base_offset
+            y1 = base_offset + self.grid_size*row
+            x2 = row_offset
+            y2 = base_offset + self.grid_size*row
+            self.canvas.create_line(x1, y1, x2, y2, fill=self.grid_color,
+                                    tags='grid', width=self.line_width)
+
+    def get_grid_center(self, coord: Coordinate):
+
+        block_offset = (self.grid_size+1)//2
+        grid_offset = (self.line_width+1)//2
+
+        x = grid_offset + block_offset + self.grid_size * coord.x
+        y = grid_offset + block_offset + self.grid_size * coord.y
+        return x, y
+
+    @staticmethod
+    def get_triangle_vertices(x: int, y: int, edge_size: int, direction: Direction) \
+            -> Tuple[int, ...]:
+        half_edge_size = (edge_size + 1) // 2
+
+        vert_offsets: List[int] = []
+        if direction is Direction.NORTH:
+            vert_offsets = [0, 0, edge_size, 0, half_edge_size, edge_size]
+        elif direction is Direction.EAST:
+            vert_offsets = [0, 0, edge_size, half_edge_size, 0, edge_size]
+        elif direction is Direction.SOUTH:
+            vert_offsets = [half_edge_size, 0, edge_size, edge_size, 0, edge_size]
+        elif direction is Direction.WEST:
+            vert_offsets = [edge_size, 0, edge_size, edge_size, 0, half_edge_size]
+        return tuple(map(add, [x-half_edge_size, y-half_edge_size] * 3, vert_offsets))
+
+    def draw_sim(self, s_blocks: SBlocks, b_blocks: BBlocks, robots: Robots):
+        self.draw_s_blocks(s_blocks)
+        self.draw_b_blocks(b_blocks)
+        self.draw_robots(robots)
+
+    def draw_s_blocks(self, s_blocks: SBlocks):
+        for coord, block in s_blocks.items():
+            fill_color = self.scaffold_colors[block.instruction]
+            # outline_color = self.s_block_color
+            self.draw_block(coord, fill_color, self.block_color)
+
+    def draw_b_blocks(self, b_blocks: BBlocks):
+        for coord, block in b_blocks.items():
+            self.draw_block(coord, self.block_color, self.block_color)
+
+    def draw_block(self, coord: Coordinate, fill: Color, outline: Color):
+        edge_size = self.grid_size - 2*self.block_line_width - 2*self.block_gap
+        corner_dist = (edge_size+1)//2
+        x, y = self.get_grid_center(coord)
+
+        self.canvas.create_rectangle(x-corner_dist, y-corner_dist,
+                                     x+corner_dist, y+corner_dist,
+                                     fill=fill, outline=outline,
+                                     width=self.block_line_width)
+
+    def draw_robots(self, robots: Robots):
+        for coord, robot in robots.items():
+            self.draw_robot(coord, robot)
+
+    def draw_robot(self, coord: Coordinate, robot: BuilderState):
+        edge_size = self.grid_size - self.block_line_width - 2*self.block_gap\
+                    - 2*self.robot_gap
+
+        x, y = self.get_grid_center(coord)
+
+        vertices = self.get_triangle_vertices(x, y, edge_size, robot.direction)
+
+        fill = self.builder_colors[robot.held_block]
+        outline = self.robot_color
+
+        self.canvas.create_polygon(*vertices, fill=fill, outline=outline)
