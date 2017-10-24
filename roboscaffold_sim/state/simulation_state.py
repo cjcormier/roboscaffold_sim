@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, NamedTuple
 from roboscaffold_sim.state.block_states import BuildingBlockState, ScaffoldState
 from roboscaffold_sim.message.message_queue import MessageQueue
 from roboscaffold_sim.state.builder_state import BuilderState
@@ -19,7 +19,12 @@ class GoalType(Enum):
     PICK_SCAFFOLD = auto()
 
 
-Goal = Tuple[Coordinate, GoalType]
+class Goal(NamedTuple):
+    coord: Coordinate
+    type: GoalType
+
+
+Goals = List[Goal]
 
 
 class SimulationState:
