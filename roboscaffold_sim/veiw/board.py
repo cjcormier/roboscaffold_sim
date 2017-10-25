@@ -182,7 +182,7 @@ class Board(tk.Frame):
                                      x+corner_dist, y+corner_dist,
                                      tags=('goal', 'drawn'), outline=color,
                                      width=self.goal_line_width,
-                                     dash=".")
+                                     dash=".", dashoffset=3)
 
     def draw_target_structure(self, target:CoordinateList):
         for coord in target:
@@ -198,5 +198,4 @@ class Board(tk.Frame):
                                      x+corner_dist, y+corner_dist,
                                      tags=('target', 'drawn'), outline=color,
                                      width=self.goal_line_width,
-                                     dash=".")
-
+                                     dash=".", dashoffset=3)

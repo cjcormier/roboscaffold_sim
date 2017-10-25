@@ -82,7 +82,13 @@ class SimulationState:
             new_x = coord.x - min_x - 1
             new_y = coord.y - min_y - 1
             new_target.append(Coordinate(new_x, new_y))
+
+        new_target.sort(key=lambda coord: (coord.x, coord,y))
         return new_target
+
+    @staticmethod
+    def coord_comparator(x, y):
+        pass
 
     def update(self):
         pass
