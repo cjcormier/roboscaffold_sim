@@ -50,6 +50,12 @@ class SimulationState:
         sim.target_structure = structure
         return sim
 
+    @staticmethod
+    def create_with_target_structure(target: Coordinates):
+        sim: T = SimulationState.create_base_sim()
+        sim.target_structure = target
+        return sim
+
     def update(self):
         pass
 
@@ -60,6 +66,20 @@ class SimulationStateList:
             initial_state = SimulationState()
         self._working_state: SimulationState = initial_state
         self.states: List[SimulationState] = [copy.deepcopy(self._working_state)]
+
+    @staticmethod
+    def create_with_goal_structure(goal):
+        initial_state = SimulationState.create_with_target_structure(goal)
+        return SimulationStateList(initial_state)
+
+    @staticmethod
+    def create_with_empty_states(num_states: int=1):
+        initial_state = SimulationState()
+        states = SimulationStateList(initial_state)
+        for _ in range(num_states-1):
+            states.states.append(copy.deepcopy(initial_state))
+
+        return states
 
     def update(self):
         if not self._working_state.finished:

@@ -79,6 +79,12 @@ class StateControls(tk.Frame):
         self.pause()
         self.update_state()
 
+    @staticmethod
+    def create_with_updater(parent, updater):
+        controler = StateControls(parent)
+        controler.set_updater(updater)
+        return controler
+
     def set_updater(self, updater):
         self.updater = updater
 

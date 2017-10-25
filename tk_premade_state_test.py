@@ -20,8 +20,7 @@ def get_next_coord() -> Coordinate:
     return next_coord
 
 
-states = SimulationStateList()
-states.update_loop(2)
+states = SimulationStateList.create_with_empty_states(400)
 
 
 def update_canvas(frame: int):
@@ -34,8 +33,7 @@ board.grid(row=0, column=0, rowspan=4)
 board.draw_grid()
 
 
-state_controls = StateControls(root)
-state_controls.set_updater(update_canvas)
+state_controls = StateControls.create_with_updater(root, update_canvas)
 state_controls.grid(row=2, column=1, sticky="s")
 
 s_blocks = {}
@@ -81,6 +79,8 @@ for direction in Direction:
 states.states[1].s_blocks = s_blocks
 states.states[1].b_blocks = b_blocks
 states.states[1].robots = robots
+
+
 
 board.draw_sim(states.states[0])
 state_controls.max_state = len(states.states)
