@@ -55,7 +55,9 @@ class SimulationState:
 
 
 class SimulationStateList:
-    def __init__(self, initial_state: SimulationState):
+    def __init__(self, initial_state: SimulationState = None):
+        if initial_state is None:
+            initial_state = SimulationState()
         self._working_state: SimulationState = initial_state
         self.states: List[SimulationState] = [copy.deepcopy(self._working_state)]
 

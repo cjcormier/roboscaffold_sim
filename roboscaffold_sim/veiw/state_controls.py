@@ -5,6 +5,7 @@ class StateControls(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
+        self.updater = lambda x: None
 
         self.rows = 5
         self.row_frames = [tk.Frame(self) for _ in range(self.rows)]
@@ -12,8 +13,8 @@ class StateControls(tk.Frame):
             tk.Grid.columnconfigure(self, i, weight=1)
             frame.grid(row=i, column=0, sticky='we')
 
-        self._current_state = 0
-        self._max_state = 0
+        self._current_state = 1
+        self._max_state = 1
         self.finished = False
         self.play_status = False
 
@@ -43,7 +44,7 @@ class StateControls(tk.Frame):
         self.ff_step.grid(row=0, column=4)
 
         tk.Grid.columnconfigure(self.row_frames[1], 0, weight=1)
-        self.scale = tk.Scale(self.row_frames[1], orient=tk.HORIZONTAL,
+        self.scale = tk.Scale(self.row_frames[1], orient=tk.HORIZONTAL, from_=1,
                               command=lambda _: self.update_state(True))
         self.scale.grid(row=1, column=0, columnspan=5, sticky='we')
 
@@ -78,6 +79,9 @@ class StateControls(tk.Frame):
         self.pause()
         self.update_state()
 
+    def set_updater(self, updater):
+        self.updater = updater
+
     def f_step_callback(self):
         self.current_state = min(self.current_state + 1, self.max_state)
         self.update_state()
@@ -87,11 +91,11 @@ class StateControls(tk.Frame):
         self.update_state()
 
     def b_step_callback(self):
-        self.current_state = max(self.current_state - 1, 0)
+        self.current_state = max(self.current_state - 1, 1)
         self.update_state()
 
     def bb_step_callback(self):
-        self.current_state = max(self.current_state - 1, 0)
+        self.current_state = max(self.current_state - 1, 1)
         self.update_state()
 
     def update_state(self, new_scale=False):
@@ -103,6 +107,7 @@ class StateControls(tk.Frame):
 
         self.scale.configure(to=self.max_state)
         self.scale.set(self.current_state)
+        self.updater(self.current_state - 1)
 
     def play(self):
         self.play_status = True

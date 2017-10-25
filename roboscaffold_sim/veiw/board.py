@@ -7,7 +7,7 @@ from roboscaffold_sim.direction import Direction
 from roboscaffold_sim.state.block_states import ScaffoldInstruction
 from roboscaffold_sim.state.builder_state import HeldBlock, BuilderState
 from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots, GoalType, \
-    Goal, Goals
+    Goal, Goals, SimulationState
 
 Color = str
 
@@ -120,10 +120,13 @@ class Board(tk.Frame):
             vert_offsets = [edge_size, 0, edge_size, edge_size, 0, half_edge_size]
         return tuple(map(add, [x-half_edge_size, y-half_edge_size] * 3, vert_offsets))
 
-    def draw_sim(self, sim):
+    def draw_sim(self, sim: SimulationState):
+        self.canvas.delete('drawn')
         self.draw_s_blocks(sim.s_blocks)
         self.draw_b_blocks(sim.b_blocks)
         self.draw_robots(sim.robots)
+        if len(sim.goal_stack) > 0:
+            self.draw_goal(sim.goal_stack[-1])
 
     def draw_s_blocks(self, s_blocks: SBlocks):
         for coord, block in s_blocks.items():
@@ -142,7 +145,7 @@ class Board(tk.Frame):
 
         self.canvas.create_rectangle(x-corner_dist, y-corner_dist,
                                      x+corner_dist, y+corner_dist,
-                                     tags=('block', *tags),
+                                     tags=('block', 'drawn', *tags),
                                      fill=fill, outline=outline,
                                      width=self.block_line_width)
 
@@ -162,7 +165,7 @@ class Board(tk.Frame):
         outline = self.robot_color
 
         self.canvas.create_polygon(*vertices, fill=fill, outline=outline,
-                                   tag='robot')
+                                   tag=('robot', 'drawn'))
 
     def draw_goals(self, goals: Goals):
         for goal in goals:
@@ -176,6 +179,6 @@ class Board(tk.Frame):
 
         self.canvas.create_rectangle(x-corner_dist, y-corner_dist,
                                      x+corner_dist, y+corner_dist,
-                                     tags='goal', outline=color,
+                                     tags=('goal', 'drawn'), outline=color,
                                      width=self.goal_line_width,
                                      dash=".")
