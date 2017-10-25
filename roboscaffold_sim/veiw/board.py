@@ -6,7 +6,8 @@ from roboscaffold_sim.coordinate import Coordinate
 from roboscaffold_sim.direction import Direction
 from roboscaffold_sim.state.block_states import ScaffoldInstruction
 from roboscaffold_sim.state.builder_state import HeldBlock, BuilderState
-from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots, GoalType, Goal, Goals
+from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots, GoalType, \
+    Goal, Goals
 
 Color = str
 

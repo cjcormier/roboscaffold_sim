@@ -6,10 +6,6 @@ from roboscaffold_sim.state.simulation_state import SimulationState, Goal, GoalT
 from roboscaffold_sim.veiw.board import Board
 import tkinter as tk
 
-root = tk.Tk()
-board = Board(root)
-board.grid()
-board.draw_grid()
 i = 0
 
 
@@ -19,6 +15,11 @@ def get_next_coord() -> Coordinate:
     i += 1
     return next_coord
 
+
+root = tk.Tk()
+board = Board(root)
+board.grid()
+board.draw_grid()
 
 s_blocks = {}
 b_blocks = {}

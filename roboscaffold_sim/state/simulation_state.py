@@ -1,4 +1,4 @@
-from typing import Dict, List, NamedTuple, Optional
+from typing import Dict, List, NamedTuple, Optional, TypeVar
 from roboscaffold_sim.state.block_states import BuildingBlockState, ScaffoldState
 from roboscaffold_sim.message.message_queue import MessageQueue
 from roboscaffold_sim.state.builder_state import BuilderState
@@ -25,6 +25,7 @@ class Goal(NamedTuple):
 
 
 Goals = List[Optional[Goal]]
+T = TypeVar('T', bound='SimulationState')
 
 
 class SimulationState:
@@ -41,12 +42,13 @@ class SimulationState:
         self.builder: BuilderState = BuilderState()
 
     @staticmethod
-    def create_base_sim(structure: Coordinates = list()):
-        sim: SimulationState = SimulationState()
+    def create_base_sim(structure: Coordinates = list()) -> T:
+        sim: T = SimulationState()
 
         sim.s_blocks[Coordinate(0, 0)] = ScaffoldState()
         sim.robots[Coordinate(0, 0)] = BuilderState()
         sim.target_structure = structure
+        return sim
 
     def update(self):
         pass
