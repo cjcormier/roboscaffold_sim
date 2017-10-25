@@ -2,7 +2,7 @@ import tkinter as tk
 from operator import add
 from typing import Tuple, List
 
-from roboscaffold_sim.coordinate import Coordinate
+from roboscaffold_sim.coordinate import Coordinate, CoordinateList
 from roboscaffold_sim.direction import Direction
 from roboscaffold_sim.state.block_states import ScaffoldInstruction
 from roboscaffold_sim.state.builder_state import HeldBlock, BuilderState
@@ -29,7 +29,7 @@ class Board(tk.Frame):
 
         self.grid_color = "#000"
         self.s_block_color = '#000'
-        self.b_block_color = '#fff'
+        self.b_block_color = '#000'
         self.block_color = '#000'
         self.robot_color = None
         self.background_color = '#888'
@@ -125,6 +125,7 @@ class Board(tk.Frame):
         self.draw_s_blocks(sim.s_blocks)
         self.draw_b_blocks(sim.b_blocks)
         self.draw_robots(sim.robots)
+        self.draw_target_structure(sim.target_structure)
         if len(sim.goal_stack) > 0:
             self.draw_goal(sim.goal_stack[-1])
 
@@ -182,3 +183,20 @@ class Board(tk.Frame):
                                      tags=('goal', 'drawn'), outline=color,
                                      width=self.goal_line_width,
                                      dash=".")
+
+    def draw_target_structure(self, target:CoordinateList):
+        for coord in target:
+            self.draw_target(coord)
+
+    def draw_target(self, coord: Coordinate):
+        edge_size = self.grid_size - 2*self.block_line_width - 2*self.block_gap
+        corner_dist = (edge_size+1)//2
+        x, y = self.get_grid_center(coord)
+        color = self.b_block_color
+
+        self.canvas.create_rectangle(x-corner_dist, y-corner_dist,
+                                     x+corner_dist, y+corner_dist,
+                                     tags=('target', 'drawn'), outline=color,
+                                     width=self.goal_line_width,
+                                     dash=".")
+

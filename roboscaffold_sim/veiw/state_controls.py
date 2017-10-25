@@ -101,7 +101,7 @@ class StateControls(tk.Frame):
         self.update_state()
 
     def bb_step_callback(self):
-        self.current_state = max(self.current_state - 1, 1)
+        self.current_state = max(self.current_state - 5, 1)
         self.update_state()
 
     def update_state(self, new_scale=False):

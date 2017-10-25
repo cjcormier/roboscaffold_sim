@@ -49,6 +49,7 @@ sim = SimulationState()
 sim.s_blocks = s_blocks
 sim.b_blocks = b_blocks
 sim.robots = robots
+sim.target_structure = [get_next_coord()]
 board.draw_sim(sim)
 
 goal = Goal(get_next_coord(), GoalType.PLACE_SCAFFOLD)

@@ -1,15 +1,15 @@
-from typing import Dict, List, NamedTuple, Optional, TypeVar
-from roboscaffold_sim.state.block_states import BuildingBlockState, ScaffoldState
-from roboscaffold_sim.message.message_queue import MessageQueue
-from roboscaffold_sim.state.builder_state import BuilderState
-from roboscaffold_sim.coordinate import Coordinate
-from enum import Enum, auto
 import copy
+from enum import Enum, auto
+from typing import Dict, List, NamedTuple, Optional, TypeVar
+
+from roboscaffold_sim.coordinate import Coordinate, CoordinateList, CoordinateSet
+from roboscaffold_sim.message.message_queue import MessageQueue
+from roboscaffold_sim.state.block_states import BuildingBlockState, ScaffoldState
+from roboscaffold_sim.state.builder_state import BuilderState
 
 SBlocks = Dict[Coordinate, ScaffoldState]
 BBlocks = Dict[Coordinate, BuildingBlockState]
 Robots = Dict[Coordinate, BuilderState]
-Coordinates = List[Optional[Coordinate]]
 
 
 class GoalType(Enum):
@@ -35,14 +35,14 @@ class SimulationState:
         self.b_blocks: BBlocks = dict()
         self.robots: Robots = dict()
 
-        self.target_structure: Coordinates = []
+        self.target_structure: CoordinateList = []
         self.goal_stack: Goals = []
 
         self.messages: MessageQueue = MessageQueue()
         self.builder: BuilderState = BuilderState()
 
     @staticmethod
-    def create_base_sim(structure: Coordinates = list()) -> T:
+    def create_base_sim(structure: CoordinateList = list()) -> T:
         sim: T = SimulationState()
 
         sim.s_blocks[Coordinate(0, 0)] = ScaffoldState()
@@ -51,10 +51,38 @@ class SimulationState:
         return sim
 
     @staticmethod
-    def create_with_target_structure(target: Coordinates):
+    def create_with_target_structure(target: CoordinateList):
         sim: T = SimulationState.create_base_sim()
-        sim.target_structure = target
-        return sim
+        if SimulationState.validate_target_structure(target):
+            sim.target_structure = target
+            return sim
+        else:
+            raise ValueError('Given target is not a valid structure')
+
+    @staticmethod
+    def validate_target_structure(target: CoordinateList) -> bool:
+        remaining_set: CoordinateSet = {x for x in target[1:]}
+        neighbors: CoordinateSet = {target[0]}
+        working_set: CoordinateSet = {target[0]}
+        while len(working_set) > 0 and len(remaining_set) > 0:
+            for coord in working_set:
+                neighbors.update(coord.neighbors)
+            working_set = neighbors.intersection(remaining_set)
+            remaining_set = remaining_set.difference(working_set)
+
+        return len(remaining_set) > 0
+
+    @staticmethod
+    def offset_target_structure(target: CoordinateList) -> CoordinateList:
+        min_x = min(coord.x for coord in target)
+        min_y = min(coord.x for coord in target)
+
+        new_target: CoordinateList = []
+        for coord in target:
+            new_x = coord.x - min_x - 1
+            new_y = coord.y - min_y - 1
+            new_target.append(Coordinate(new_x, new_y))
+        return new_target
 
     def update(self):
         pass

@@ -57,6 +57,7 @@ states.states[0].s_blocks = s_blocks
 states.states[0].b_blocks = b_blocks
 states.states[0].robots = robots
 goal = Goal(get_next_coord(), GoalType.PLACE_SCAFFOLD)
+states.states[0].target_structure = [get_next_coord()]
 states.states[0].goal_stack.append(goal)
 
 s_blocks = {}
@@ -80,7 +81,8 @@ states.states[1].s_blocks = s_blocks
 states.states[1].b_blocks = b_blocks
 states.states[1].robots = robots
 
-
+for _ in range(10):
+    states.states[2].target_structure.append(get_next_coord())
 
 board.draw_sim(states.states[0])
 state_controls.max_state = len(states.states)
