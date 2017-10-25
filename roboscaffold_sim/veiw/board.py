@@ -63,7 +63,10 @@ class Board(tk.Frame):
             HeldBlock.NONE: '#888'
         }
 
-        self.canvas = tk.Canvas(self, width=600, height=600)
+        needed_width = self.columns*self.grid_size + self.line_width
+        needed_height = self.rows*self.grid_size + self.line_width
+
+        self.canvas = tk.Canvas(self, width=needed_width, height=needed_height)
         self.canvas.configure(background=self.background_color)
         self.canvas.grid()
 
