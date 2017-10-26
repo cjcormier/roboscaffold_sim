@@ -14,14 +14,14 @@ class Direction(Enum):
         return _left[self]
 
 
-_right = {
+_left = {
     Direction.NORTH: Direction.EAST,
     Direction.EAST: Direction.SOUTH,
     Direction.SOUTH: Direction.WEST,
     Direction.WEST: Direction.NORTH
 }
 
-_left = {
+_right = {
     Direction.NORTH: Direction.WEST,
     Direction.EAST: Direction.NORTH,
     Direction.SOUTH: Direction.EAST,

@@ -6,7 +6,7 @@ from roboscaffold_sim.veiw.state_controls import StateControls
 
 
 class BasicPlayer(tk.Frame):
-    def __init__(self, parent, starting_state=SimulationState(), load_to=1000,
+    def __init__(self, parent, starting_state=SimulationState(), load_to=200,
                  *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
@@ -27,8 +27,6 @@ class BasicPlayer(tk.Frame):
         self.state_controls.max_state = len(self.states.states)
 
     def update_canvas(self):
-        print('passing fun')
-
         def fun(frame):
             self.board.draw_sim(self.states.states[frame])
 

@@ -17,6 +17,6 @@ class BuilderState:
         if direction == 'left':
             self.direction = self.direction.left()
         elif direction == 'right':
-            self.direction = self.direction.left()
+            self.direction = self.direction.right()
         else:
             raise ValueError('Direction should be "left" or "right"')
