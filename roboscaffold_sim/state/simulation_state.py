@@ -88,12 +88,40 @@ class SimulationState:
         return new_target
 
     def update(self):
-        if self.check_scaffolding_update():
+        if self.validate_goals():
             self.update_scaffolding()
         else:
-            self.update_robots()
+            if not self.finished:
+                self.update_robots()
 
-    def check_scaffolding_update(self):
+    def validate_goals(self):
+        get_new_goal = False
+        while True:
+            if len(self.goal_stack) == 0:
+                get_new_goal = True
+                break
+            curr_goal = self.goal_stack[-1]
+
+            if curr_goal.type == GoalType.PLACE_SCAFFOLD and curr_goal.coord in self.s_blocks:
+                pass
+            elif curr_goal.type == GoalType.PLACE_BUILD_BLOCK and curr_goal.coord in self.b_blocks:
+                pass
+            elif curr_goal.type == GoalType.PICK_SCAFFOLD and curr_goal.coord not in self.s_blocks:
+                pass
+            elif curr_goal.type == GoalType.PICK_BUILD_BLOCK and curr_goal.coord not in self.b_blocks:
+                pass
+            else:
+                break
+
+            self.goal_stack = self.goal_stack[0:-1]
+            get_new_goal = True
+
+        if get_new_goal:
+            self.get_new_goal()
+
+        return get_new_goal and self.finished
+
+    def get_new_goal(self):
         pass
 
     def update_robots(self):
