@@ -71,7 +71,7 @@ for _ in range(10):
     states.states[2].target_structure.append(get_next_coord())
 
 root = tk.Tk()
-player = BasicPlayer(root, initial_updates=0)
+player = BasicPlayer(root, load_to=0)
 player.state_controls.max_state = len(states.states)
 player.states = states
 player.force_update()

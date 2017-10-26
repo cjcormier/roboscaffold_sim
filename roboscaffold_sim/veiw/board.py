@@ -27,6 +27,7 @@ class Board(tk.Frame):
         self.goal_line_width = 3
         self.block_gap = 3
         self.robot_gap = self.block_line_width + 3
+        self.target_gap = 3
 
         self.grid_color = "#000"
         self.s_block_color = '#000'
@@ -41,6 +42,7 @@ class Board(tk.Frame):
 
             ScaffoldInstruction.DRIVE_LEFT: '#800',
             ScaffoldInstruction.DRIVE_RIGHT: '#080',
+            ScaffoldInstruction.DRIVE_UTURN: '#008',
 
             ScaffoldInstruction.PICK_LEFT: '#ff0',
             ScaffoldInstruction.PICK_RIGHT: '#0ff',
@@ -187,24 +189,30 @@ class Board(tk.Frame):
         x, y = self.get_grid_center(goal.coord)
         color = self.goal_colors[goal.type]
 
-        self.canvas.create_rectangle(x-corner_dist, y-corner_dist,
-                                     x+corner_dist, y+corner_dist,
-                                     tags=('goal', 'drawn'), outline=color,
-                                     width=self.goal_line_width,
-                                     dash=".", dashoffset=3)
+        goal_drawing = self.canvas.create_rectangle(x-corner_dist, y-corner_dist,
+                                                    x+corner_dist, y+corner_dist,
+                                                    tags=('goal', 'drawn'), outline=color,
+                                                    width=self.goal_line_width,
+                                                    dash=".", dashoffset=3)
+
+        CanvasTooltip(self.canvas, goal_drawing, waittime=100,
+                      text=f'GOAL: {goal.type.name}')
 
     def draw_target_structure(self, target: CoordinateList):
         for coord in target:
             self.draw_target(coord)
 
     def draw_target(self, coord: Coordinate):
-        edge_size = self.grid_size - 2*self.block_line_width - 2*self.block_gap
+        edge_size = self.grid_size - 2*self.block_line_width - 2*self.block_gap - 2*self.target_gap
         corner_dist = (edge_size+1)//2
         x, y = self.get_grid_center(coord)
         color = self.b_block_color
 
-        self.canvas.create_rectangle(x-corner_dist, y-corner_dist,
-                                     x+corner_dist, y+corner_dist,
-                                     tags=('target', 'drawn'), outline=color,
-                                     width=self.goal_line_width,
-                                     dash=".", dashoffset=3)
+        target = self.canvas.create_rectangle(x-corner_dist, y-corner_dist,
+                                              x+corner_dist, y+corner_dist,
+                                              tags=('target', 'drawn'), outline=color,
+                                              width=self.goal_line_width,
+                                              dash=".", dashoffset=31)
+
+        CanvasTooltip(self.canvas, target, waittime=100,
+                      text=f'Target Structure')

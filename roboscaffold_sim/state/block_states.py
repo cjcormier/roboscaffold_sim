@@ -11,6 +11,7 @@ class ScaffoldInstruction(Enum):
 
     DRIVE_LEFT = auto()
     DRIVE_RIGHT = auto()
+    DRIVE_UTURN = auto()
 
     PICK_LEFT = auto()
     PICK_RIGHT = auto()

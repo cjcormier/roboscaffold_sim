@@ -11,7 +11,7 @@ class HeldBlock(Enum):
 class BuilderState:
     def __init__(self):
         self.held_block = HeldBlock.NONE
-        self.direction = Direction.NORTH
+        self.direction = Direction.SOUTH
 
     def turn(self, direction):
         if direction == 'left':

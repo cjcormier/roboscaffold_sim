@@ -1,4 +1,5 @@
 import copy
+import traceback
 from enum import Enum, auto
 from typing import Dict, List, NamedTuple, Optional, TypeVar, Tuple
 
@@ -51,7 +52,7 @@ class SimulationState:
     def create_base_sim(structure: CoordinateList = list()) -> T:
         sim: T = SimulationState()
 
-        sim.s_blocks[Coordinate(0, 0)] = ScaffoldState()
+        sim.s_blocks[Coordinate(0, 0)] = ScaffoldState(ScaffoldInstruction.STOP)
         sim.robots[Coordinate(0, 0)] = BuilderState()
         sim.target_structure = structure
         return sim
@@ -76,7 +77,7 @@ class SimulationState:
             working_set = neighbors.intersection(remaining_set)
             remaining_set = remaining_set.difference(working_set)
 
-        return len(remaining_set) > 0
+        return len(remaining_set) == 0
 
     @staticmethod
     def offset_target_structure(target: CoordinateList) -> CoordinateList:
@@ -194,6 +195,14 @@ class SimulationState:
         return None
 
     def get_next_needed_block(self, start: Coordinate, goal: Coordinate) -> Coordinate:
+        path = self.get_path_to(start, goal, False)
+        for path_coord in path:
+            if path_coord not in self.s_blocks:
+                return path_coord
+        raise ValueError('already a path there')
+
+    def get_path_to(self, start: Coordinate, goal: Coordinate, only_scaffold=True) -> List[Coordinate]:
+
         invalid_blocks = set(self.b_blocks)
         neighbors: Tuple[Coordinate, List[Coordinate]] = {(x, [start]) for x in start.get_neighbors()}
 
@@ -205,11 +214,11 @@ class SimulationState:
                 new_path.append(coord)
                 new_neighbors = coord.get_neighbors()
                 if goal in new_neighbors:
-                    for path_coord in path:
-                        if path_coord not in self.s_blocks:
-                            return path_coord
-                    raise ValueError('already a path there')
-                neighbors.update((x, new_path) for x in new_neighbors if x not in invalid_blocks)
+                    return path
+                neighbors.update((x, new_path) for x in new_neighbors if (x not in invalid_blocks and
+                                                                          (x in self.s_blocks or not only_scaffold)
+                                                                          )
+                                 )
 
     # TODO: Test
     def neighbor_coord_is_reachable(self, start:Coordinate, goal:Coordinate, only_scaffold=True):
@@ -249,12 +258,12 @@ class SimulationState:
                 self.move_robot(coord, robot)
             elif block_instruction is ScaffoldInstruction.PICK_LEFT:
                 robot.turn('left')
-                self.pick(coord, robot)
+                self.pick(coord, robot, block_instruction)
             elif block_instruction is ScaffoldInstruction.PICK_RIGHT:
                 robot.turn('right')
-                self.pick(coord, robot)
+                self.pick(coord, robot, block_instruction)
             elif block_instruction is ScaffoldInstruction.PICK_FORWARD:
-                self.pick(coord, robot)
+                self.pick(coord, robot, block_instruction)
             elif block_instruction is ScaffoldInstruction.DROP_LEFT:
                 robot.turn('left')
                 self.drop(coord, robot)
@@ -264,18 +273,21 @@ class SimulationState:
             elif block_instruction is ScaffoldInstruction.DROP_FORWARD:
                 self.drop(coord, robot)
 
-    def pick(self, robo_coord: Coordinate, robot: BuilderState):
+    def pick(self, robo_coord: Coordinate, robot: BuilderState, instruction: GoalType):
         self.validate_robot_position(robo_coord)
         block_coord = robo_coord.get_coord_in_direction(robot.direction)
+        wanted_block = HeldBlock.SCAFFOLD if instruction is GoalType.PICK_SCAFFOLD else HeldBlock.BUILD
 
-        if block_coord in self.s_blocks:
+        if block_coord in self.s_blocks and wanted_block is HeldBlock.SCAFFOLD:
             del self.s_blocks[block_coord]
-            robot.held_block = HeldBlock.SCAFFOLD
-        elif block_coord in self.b_blocks:
+        elif block_coord in self.b_blocks and wanted_block is HeldBlock.BUILD:
             del self.b_blocks[block_coord]
-            robot.held_block = HeldBlock.BUILD
+        elif block_coord == self.cache:
+            pass
         else:
-            raise LookupError("No block found")
+            raise LookupError("Invalid block found and not pointed at seed ")
+
+        robot.held_block = wanted_block
 
     def drop(self, robo_coord: Coordinate, robot: BuilderState):
         self.validate_robot_position(robo_coord)
@@ -329,14 +341,20 @@ class SimulationStateList:
 
         return states
 
-    def update(self):
-        if not self._working_state.finished:
-            self._working_state.update()
-            self.states.append(copy.deepcopy(self._working_state))
+    def update(self) -> Optional[Exception]:
+        try:
+            if not self._working_state.finished:
+                self._working_state.update()
+                self.states.append(copy.deepcopy(self._working_state))
+        except Exception as e:
+            traceback.print_exception(etype=type(e), value=e, tb=e.__traceback__)
+            return e
 
     def update_loop(self, max_rounds: int = 1000):
         for _ in range(max_rounds):
             if self._working_state.finished:
                 break
             else:
-                self.update()
+                exception = self.update()
+                if exception:
+                    break
