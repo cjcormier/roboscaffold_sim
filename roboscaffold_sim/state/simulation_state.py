@@ -1,6 +1,6 @@
 import copy
 from enum import Enum, auto
-from typing import Dict, List, NamedTuple, Optional, TypeVar
+from typing import Dict, List, NamedTuple, Optional, TypeVar, Tuple
 
 from roboscaffold_sim.coordinate import Coordinate, CoordinateList, CoordinateSet
 from roboscaffold_sim.message.message_queue import MessageQueue
@@ -27,6 +27,10 @@ class Goal(NamedTuple):
 
 Goals = List[Optional[Goal]]
 T = TypeVar('T', bound='SimulationState')
+# TODO: make exceptions
+# TODO: make interface/abstract class and sub classes
+# TODO: function type hinting
+# TODO: docstrings
 
 
 class SimulationState:
@@ -41,6 +45,7 @@ class SimulationState:
 
         self.messages: MessageQueue = MessageQueue()
         self.builder: BuilderState = BuilderState()
+        self.cache = Coordinate(0, 1)
 
     @staticmethod
     def create_base_sim(structure: CoordinateList = list()) -> T:
@@ -84,22 +89,29 @@ class SimulationState:
             new_y = coord.y - min_y - 1
             new_target.append(Coordinate(new_x, new_y))
 
-        new_target.sort(key=lambda coord: (coord.x, coord.y))
+        new_target.sort(key=lambda coord: (-coord.x, coord.y))
         return new_target
 
     def update(self):
-        if self.validate_goals():
+        process_goals = self.validate_goals()
+        update_scaffolding = False
+        if process_goals:
+            update_scaffolding = self.process_goals()
+
+        if update_scaffolding:
             self.update_scaffolding()
         else:
-            if not self.finished:
-                self.update_robots()
+            self.update_robots()
 
     def validate_goals(self):
-        get_new_goal = False
+        process_goals = False
+
+        # TODO: is a while loop needed
         while True:
             if len(self.goal_stack) == 0:
-                get_new_goal = True
+                process_goals = True
                 break
+
             curr_goal = self.goal_stack[-1]
 
             if curr_goal.type == GoalType.PLACE_SCAFFOLD and curr_goal.coord in self.s_blocks:
@@ -114,15 +126,112 @@ class SimulationState:
                 break
 
             self.goal_stack = self.goal_stack[0:-1]
-            get_new_goal = True
+            process_goals = True
 
-        if get_new_goal:
-            self.get_new_goal()
+        return process_goals
 
-        return get_new_goal and self.finished
+    def get_single_robot(self) -> Tuple[Coordinate, BuilderState]:
+        if len(self.robots) != 1:
+            ValueError('this method requires exactly one robot in the state')
 
-    def get_new_goal(self):
-        pass
+        for coord, robot in self.robots.items():
+            return coord, robot
+
+    # TODO: clean up method
+    # TODO: Test
+    def process_goals(self):
+        """Determines the next goal if needed and returns if the scaffolding should update"""
+        if len(self.target_structure) == 0:
+            return False
+
+        if len(self.goal_stack) == 0:
+            next_b_block_location = self.get_next_unfinished_block()
+            if next_b_block_location is None:
+                self.finished = True
+                return False
+            else:
+                new_goal = Goal(next_b_block_location, GoalType.PLACE_BUILD_BLOCK)
+                self.goal_stack = [new_goal]
+
+        robo_coord, robot = self.get_single_robot()
+
+        next_goal = self.goal_stack[-1]
+        # TODO: make getting robot better
+        if next_goal.type is GoalType.PICK_BUILD_BLOCK or GoalType.PICK_SCAFFOLD:
+            if robot.held_block is not None:
+                ValueError('Holding block when next goal is picking a block')
+            else:
+                return True
+
+        elif next_goal.type is GoalType.PLACE_BUILD_BLOCK or GoalType.PLACE_SCAFFOLD:
+
+            # TODO: check if scaffolding is in the way of build block
+            if robot.held_block is next_goal.type:
+                return True
+            elif robot.held_block is None:
+                if self.neighbor_coord_is_reachable(robo_coord, next_goal.coord):
+                    if self.neighbor_coord_is_reachable(self.cache, next_goal.coord):
+                        pick_type = GoalType.PICK_SCAFFOLD if next_goal.type is GoalType.PLACE_SCAFFOLD \
+                            else GoalType.PICK_BUILD_BLOCK
+                        self.goal_stack.append(Goal(self.cache, pick_type))
+                    else:
+                        raise ValueError('need new block, but cache is unreachable')
+                    return True
+                else:
+                    next_needed_coord = self.get_next_needed_block(robo_coord, next_goal.coord)
+                    self.goal_stack.append(Goal(next_needed_coord, GoalType.PLACE_SCAFFOLD))
+                    # TODO: make iterative instead of recursive?
+                    self.process_goals()
+            else:
+                raise ValueError('Held block does not match next goal')
+
+        return False
+
+    def get_next_unfinished_block(self) -> Optional[Coordinate]:
+        for coord in self.target_structure:
+            if coord not in self.b_blocks:
+                return coord
+        return None
+
+    def get_next_needed_block(self, start: Coordinate, goal: Coordinate) -> Coordinate:
+        invalid_blocks = set(self.b_blocks)
+        neighbors: Tuple[Coordinate, List[Coordinate]] = {(x, [start]) for x in start.get_neighbors()}
+
+        while len(neighbors) != 0:
+            working_set = neighbors
+            neighbors = set()
+            for coord, path in working_set:
+                new_path = path[:]
+                new_path.append(coord)
+                new_neighbors = coord.get_neighbors()
+                if goal in new_neighbors:
+                    for path_coord in path:
+                        if path_coord not in self.s_blocks:
+                            return path_coord
+                    raise ValueError('already a path there')
+                neighbors.update((x, new_path) for x in new_neighbors if x not in invalid_blocks)
+
+    # TODO: Test
+    def neighbor_coord_is_reachable(self, start:Coordinate, goal:Coordinate, only_scaffold=True):
+        valid_blocks = set(self.s_blocks.keys())
+        if not only_scaffold:
+            valid_blocks += set(self.b_blocks.keys())
+
+        if start not in valid_blocks:
+            return False
+
+        neighbors = set(start.get_neighbors())
+        while len(neighbors) != 0:
+            working_set = neighbors
+            neighbors = set()
+            for coord in working_set:
+                new_neighbors = coord.get_neighbors()
+                if goal in new_neighbors:
+                    return True
+
+                neighbors.update([x for x in new_neighbors if x in valid_blocks])
+
+        return False
 
     def update_robots(self):
         working_set = dict(self.robots)
