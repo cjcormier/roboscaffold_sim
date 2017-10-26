@@ -69,7 +69,7 @@ CoordinateList = List[Coordinate]
 CoordinateSet = Set[Coordinate]
 Coordinates = Iterable[Optional[Coordinate]]
 
-Up = Coordinate(0, 1)
+Up = Coordinate(0, -1)
 Right = Coordinate(1, 0)
-Down = Coordinate(0, -1)
+Down = Coordinate(0, 1)
 Left = Coordinate(-1, 0)

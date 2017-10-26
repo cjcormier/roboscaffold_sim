@@ -112,11 +112,11 @@ class Board(tk.Frame):
 
         vert_offsets: List[int] = []
         if direction is Direction.NORTH:
-            vert_offsets = [0, 0, edge_size, 0, half_edge_size, edge_size]
+            vert_offsets = [half_edge_size, 0, edge_size, edge_size, 0, edge_size]
         elif direction is Direction.EAST:
             vert_offsets = [0, 0, edge_size, half_edge_size, 0, edge_size]
         elif direction is Direction.SOUTH:
-            vert_offsets = [half_edge_size, 0, edge_size, edge_size, 0, edge_size]
+            vert_offsets = [0, 0, edge_size, 0, half_edge_size, edge_size]
         elif direction is Direction.WEST:
             vert_offsets = [edge_size, 0, edge_size, edge_size, 0, half_edge_size]
         return tuple(map(add, [x-half_edge_size, y-half_edge_size] * 3, vert_offsets))
@@ -171,8 +171,11 @@ class Board(tk.Frame):
         fill = self.builder_colors[robot.held_block]
         outline = self.robot_color
 
-        self.canvas.create_polygon(*vertices, fill=fill, outline=outline,
-                                   tag=('robot', 'drawn'))
+        robot_drawing = self.canvas.create_polygon(*vertices, fill=fill, outline=outline,
+                                                   tag=('robot', 'drawn'))
+
+        CanvasTooltip(self.canvas, robot_drawing, waittime=100,
+                      text=f'Robot carrying {robot.held_block.name}')
 
     def draw_goals(self, goals: Goals):
         for goal in goals:

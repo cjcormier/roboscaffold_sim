@@ -138,7 +138,7 @@ class StateControls(tk.Frame):
         text = self.rate_textbox.get('1.0', 'end')
         try:
             val = int(text)
-            if not 1 < val <= 60:
+            if not 1 <= val <= 60:
                 self.rate_textbox.delete('1.0', 'end')
                 self.rate_textbox.insert('1.0', self.default_rate)
                 return 1
@@ -153,7 +153,7 @@ class StateControls(tk.Frame):
             text = self.load_textbox.get('1.0', 'end')
             try:
                 load = int(text)
-                if not 1 < load < 1000:
+                if not 1 <= load <= 1000:
                     self.load_textbox.delete('1.0', 'end')
                     self.load_textbox.insert('1.0', 1)
                     load = 1
