@@ -14,67 +14,132 @@ i = 0
 
 def get_next_coord() -> Coordinate:
     global i
-    next_coord = Coordinate(i % 7, i // 7)
+    next_coord = Coordinate(i % 10, i // 10)
     i += 1
     return next_coord
 
 
-s_blocks = {get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
+s_blocks = {
+    # row 0
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
 
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    # row 1
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
 
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    # row 2
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
 
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
+    # row 3
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
 
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    # row 4
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
 
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    # row 5
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
 
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
-            get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT)
-            }
+    # row 6
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
+
+    # row 7
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+
+    # row 8
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+
+    # row 9
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.STOP),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.NONE),
+    get_next_coord(): ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT),
+}
 
 sim = SimulationState()
 sim.s_blocks = s_blocks
@@ -85,6 +150,6 @@ robot.held_block = HeldBlock.BUILD
 sim.robots = {Coordinate(1, 0): copy.copy(robot)}
 
 root = tk.Tk()
-player = BasicPlayer(root, sim, 100)
+player = BasicPlayer(root, sim, 199)
 player.grid()
 root.mainloop()

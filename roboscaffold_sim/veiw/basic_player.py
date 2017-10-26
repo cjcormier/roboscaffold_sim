@@ -6,13 +6,13 @@ from roboscaffold_sim.veiw.state_controls import StateControls
 
 
 class BasicPlayer(tk.Frame):
-    def __init__(self, parent, starting_state=SimulationState(), initial_updates=1000,
+    def __init__(self, parent, starting_state=SimulationState(), load_to=1000,
                  *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
 
         self.states = SimulationStateList(starting_state)
-        self.states.update_loop(initial_updates)
+        self.states.update_loop(load_to-1)
 
         self.board = Board(parent)
         self.board.grid(row=0, column=0, rowspan=4)
@@ -36,4 +36,3 @@ class BasicPlayer(tk.Frame):
 
     def force_update(self):
         self.board.draw_sim(self.states.states[self.state_controls.current_state-1])
-
