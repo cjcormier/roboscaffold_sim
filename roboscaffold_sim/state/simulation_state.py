@@ -1,7 +1,7 @@
 import copy
 import traceback
 from enum import Enum, auto
-from typing import Dict, List, NamedTuple, Optional, TypeVar, Tuple
+from typing import Dict, List, NamedTuple, Optional, TypeVar, Tuple, Set
 
 from roboscaffold_sim.coordinate import Coordinate, CoordinateList, CoordinateSet
 from roboscaffold_sim.message.message_queue import MessageQueue
@@ -24,6 +24,9 @@ class GoalType(Enum):
 class Goal(NamedTuple):
     coord: Coordinate
     type: GoalType
+
+    def __repr__(self):
+        return f'{self.coord}:{self.type.name}'
 
 
 Goals = List[Optional[Goal]]
@@ -158,9 +161,9 @@ class SimulationState:
 
         next_goal = self.goal_stack[-1]
         # TODO: make getting robot better
-        if next_goal.type is GoalType.PICK_BUILD_BLOCK or GoalType.PICK_SCAFFOLD:
-            if robot.held_block is not None:
-                ValueError('Holding block when next goal is picking a block')
+        if next_goal.type is GoalType.PICK_BUILD_BLOCK or next_goal.type is GoalType.PICK_SCAFFOLD:
+            if robot.held_block is not HeldBlock.NONE:
+                raise ValueError('Holding block when next goal is picking a block')
             else:
                 return True
 
@@ -169,7 +172,7 @@ class SimulationState:
             # TODO: check if scaffolding is in the way of build block
             if robot.held_block is next_goal.type:
                 return True
-            elif robot.held_block is None:
+            elif robot.held_block is HeldBlock.NONE:
                 if self.neighbor_coord_is_reachable(robo_coord, next_goal.coord):
                     if self.neighbor_coord_is_reachable(self.cache, next_goal.coord):
                         pick_type = GoalType.PICK_SCAFFOLD if next_goal.type is GoalType.PLACE_SCAFFOLD \
@@ -182,7 +185,7 @@ class SimulationState:
                     next_needed_coord = self.get_next_needed_block(robo_coord, next_goal.coord)
                     self.goal_stack.append(Goal(next_needed_coord, GoalType.PLACE_SCAFFOLD))
                     # TODO: make iterative instead of recursive?
-                    self.process_goals()
+                    return self.process_goals()
             else:
                 raise ValueError('Held block does not match next goal')
 
@@ -203,8 +206,30 @@ class SimulationState:
 
     def get_path_to(self, start: Coordinate, goal: Coordinate, only_scaffold=True) -> List[Coordinate]:
 
+        class SearchTuple(NamedTuple):
+            coord: Coordinate
+            path: List[Coordinate]
+
+            def __eq__(self, other):
+                if isinstance(other, self.__class__):
+                    return self.coord == other.coord
+                return NotImplemented
+
+            def __ne__(self, other):
+                """Define a non-equality test"""
+                if isinstance(other, self.__class__):
+                    return not self.__eq__(other)
+                return NotImplemented
+
+            def __hash__(self):
+                return hash(self.coord)
+
+            def __repr__(self):
+                return f'{self.coord} -> {len(self.path)}'
+
         invalid_blocks = set(self.b_blocks)
-        neighbors: Tuple[Coordinate, List[Coordinate]] = {(x, [start]) for x in start.get_neighbors()}
+        neighbors: Set[Coordinate, Tuple[Coordinate]] = {SearchTuple(start, [])}
+        explored = set()
 
         while len(neighbors) != 0:
             working_set = neighbors
@@ -214,22 +239,33 @@ class SimulationState:
                 new_path.append(coord)
                 new_neighbors = coord.get_neighbors()
                 if goal in new_neighbors:
-                    return path
-                neighbors.update((x, new_path) for x in new_neighbors if (x not in invalid_blocks and
-                                                                          (x in self.s_blocks or not only_scaffold)
-                                                                          )
-                                 )
+                    return new_path
+                for neighbor in new_neighbors:
+                    valid_coordinate = neighbor.x >= 0 and neighbor.y >= 0
+                    valid_block = neighbor not in invalid_blocks and (neighbor in self.s_blocks or not only_scaffold)
+                    not_cache = neighbor != self.cache
+
+                    search_tuple = SearchTuple(neighbor, new_path)
+                    if valid_coordinate and valid_block and neighbor not in explored and not_cache:
+                        neighbors.add(search_tuple)
+                    explored.add(search_tuple)
 
     # TODO: Test
-    def neighbor_coord_is_reachable(self, start:Coordinate, goal:Coordinate, only_scaffold=True):
+    def neighbor_coord_is_reachable(self, start: Coordinate, goal: Coordinate, only_scaffold=True, include_cache=True):
         valid_blocks = set(self.s_blocks.keys())
+        if start == goal:
+            return True
+
+        if include_cache:
+            valid_blocks.add(self.cache)
         if not only_scaffold:
-            valid_blocks += set(self.b_blocks.keys())
+            valid_blocks.update(self.b_blocks.keys())
 
         if start not in valid_blocks:
             return False
 
         neighbors = set(start.get_neighbors())
+        explored = set()
         while len(neighbors) != 0:
             working_set = neighbors
             neighbors = set()
@@ -238,7 +274,7 @@ class SimulationState:
                 if goal in new_neighbors:
                     return True
 
-                neighbors.update([x for x in new_neighbors if x in valid_blocks])
+                neighbors.update([x for x in new_neighbors if x in valid_blocks and x not in explored])
 
         return False
 

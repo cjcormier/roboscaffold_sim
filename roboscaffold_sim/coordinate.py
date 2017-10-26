@@ -64,6 +64,9 @@ class Coordinate:
     def __str__(self):
         return f'({self.x},{self.y})'
 
+    def __repr__(self):
+        return f'({self.x},{self.y})'
+
 
 CoordinateList = List[Coordinate]
 CoordinateSet = Set[Coordinate]
