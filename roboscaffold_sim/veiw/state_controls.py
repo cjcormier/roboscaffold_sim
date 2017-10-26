@@ -2,10 +2,13 @@ import tkinter as tk
 
 
 class StateControls(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
-        tk.Frame.__init__(self, parent, *args, **kwargs)
+    def __init__(self, parent,
+                 updater=lambda x: None,
+                 *args, **kwargs):
+        tk.Frame.__init__(self, parent,
+                          *args, **kwargs)
         self.parent = parent
-        self.updater = lambda x: None
+        self.updater = updater
 
         self.rows = 5
         self.row_frames = [tk.Frame(self) for _ in range(self.rows)]
@@ -45,7 +48,7 @@ class StateControls(tk.Frame):
 
         tk.Grid.columnconfigure(self.row_frames[1], 0, weight=1)
         self.scale = tk.Scale(self.row_frames[1], orient=tk.HORIZONTAL, from_=1,
-                              command=lambda _: self.update_state(True))
+                              command=lambda _: self.scale_change())
         self.scale.grid(row=1, column=0, columnspan=5, sticky='we')
 
         self.play_button = tk.Button(self.row_frames[2], text='Play',
@@ -63,7 +66,8 @@ class StateControls(tk.Frame):
 
         self.rate_textbox = tk.Text(self.row_frames[2], width=6, height=1)
         self.rate_textbox.grid(row=0, column=3)
-        self.rate_textbox.insert('1.0', '1')
+        self.default_rate = 10
+        self.rate_textbox.insert('1.0', self.default_rate)
         self.rate_textbox_color = self.rate_textbox.cget('background')
 
         tk.Grid.columnconfigure(self.row_frames[3], 1, weight=1)
@@ -79,30 +83,21 @@ class StateControls(tk.Frame):
         self.pause()
         self.update_state()
 
-    @staticmethod
-    def create_with_updater(parent, updater):
-        controler = StateControls(parent)
-        controler.set_updater(updater)
-        return controler
-
-    def set_updater(self, updater):
-        self.updater = updater
-
     def f_step_callback(self):
         self.current_state = min(self.current_state + 1, self.max_state)
-        self.update_state()
 
     def ff_step_callback(self):
         self.current_state = min(self.current_state + 5, self.max_state)
-        self.update_state()
 
     def b_step_callback(self):
         self.current_state = max(self.current_state - 1, 1)
-        self.update_state()
 
     def bb_step_callback(self):
         self.current_state = max(self.current_state - 5, 1)
-        self.update_state()
+
+    def scale_change(self):
+        # self.pause()
+        self.update_state(True)
 
     def update_state(self, new_scale=False):
         if new_scale:
@@ -117,10 +112,20 @@ class StateControls(tk.Frame):
 
     def play(self):
         self.play_status = True
-        print(f'fps:{self.rate}')
         self.rate_textbox.config(state='disabled', background='light grey')
         self.play_button.config(relief='sunken')
         self.pause_button.config(relief='raised')
+        self.play_callback()
+
+    def play_callback(self):
+        if self.current_state == self.max_state:
+            self.pause()
+            return
+
+        if self.play_status:
+            self.current_state += 1
+            delay = 1000//self.rate
+            self.parent.after(delay, self.play_callback)
 
     def pause(self):
         self.play_status = False
@@ -135,12 +140,12 @@ class StateControls(tk.Frame):
             val = int(text)
             if not 1 < val < 30:
                 self.rate_textbox.delete('1.0', 'end')
-                self.rate_textbox.insert('1.0', 1)
+                self.rate_textbox.insert('1.0', self.default_rate)
                 return 1
             return val
         except ValueError:
             self.rate_textbox.delete('1.0', 'end')
-            self.rate_textbox.insert('1.0', 1)
+            self.rate_textbox.insert('1.0', self.default_rate)
             return 1
 
     def load(self, load=None):

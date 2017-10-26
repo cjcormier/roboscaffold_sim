@@ -1,5 +1,7 @@
 from typing import List, Optional, TypeVar, Set, Iterable
 
+from roboscaffold_sim.direction import Direction
+
 Coord = TypeVar('Coord', bound='Coordinate')
 
 CoordinateList_ = List[Coord]
@@ -23,6 +25,15 @@ class Coordinate:
 
     def get_neighbors(self) -> CoordinateList_:
         return [self+Up, self+Right, self+Down, self+Left]
+
+    def get_coord_in_direction(self, direction):
+        coord_change = {
+            Direction.NORTH: Up,
+            Direction.EAST: Right,
+            Direction.SOUTH: Down,
+            Direction.WEST: Left
+        }
+        return self + coord_change[direction]
 
     def __eq__(self, other):
         """Override the default Equals behavior"""
@@ -50,12 +61,15 @@ class Coordinate:
             return self.__add__(other)
         return NotImplemented
 
+    def __str__(self):
+        return f'({self.x},{self.y})'
+
 
 CoordinateList = List[Coordinate]
 CoordinateSet = Set[Coordinate]
 Coordinates = Iterable[Optional[Coordinate]]
 
-Up = Coordinate(1, 0)
-Right = Coordinate(0, 1)
-Down = Coordinate(-1, 0)
-Left = Coordinate(0, -1)
+Up = Coordinate(0, 1)
+Right = Coordinate(1, 0)
+Down = Coordinate(0, -1)
+Left = Coordinate(-1, 0)

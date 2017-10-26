@@ -8,6 +8,7 @@ from roboscaffold_sim.state.block_states import ScaffoldInstruction
 from roboscaffold_sim.state.builder_state import HeldBlock, BuilderState
 from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots, GoalType, \
     Goal, Goals, SimulationState
+from roboscaffold_sim.veiw.tooltip import CanvasTooltip
 
 Color = str
 
@@ -133,22 +134,27 @@ class Board(tk.Frame):
         for coord, block in s_blocks.items():
             fill_color = self.scaffold_colors[block.instruction]
             # outline_color = self.s_block_color
-            self.draw_block(coord, fill_color, self.block_color)
+            self.draw_block(coord, fill_color, self.block_color,
+                            tooltip=block.instruction.name)
 
     def draw_b_blocks(self, b_blocks: BBlocks):
         for coord, block in b_blocks.items():
-            self.draw_block(coord, self.block_color, self.block_color)
+            self.draw_block(coord, self.block_color, self.block_color,
+                            tooltip="BUILDING_BLOCK")
 
-    def draw_block(self, coord: Coordinate, fill: Color, outline: Color, tags=()):
+    def draw_block(self, coord: Coordinate, fill: Color, outline: Color, tags=(),
+                   tooltip=None):
         edge_size = self.grid_size - 2*self.block_line_width - 2*self.block_gap
         corner_dist = (edge_size+1)//2
         x, y = self.get_grid_center(coord)
 
-        self.canvas.create_rectangle(x-corner_dist, y-corner_dist,
-                                     x+corner_dist, y+corner_dist,
-                                     tags=('block', 'drawn', *tags),
-                                     fill=fill, outline=outline,
-                                     width=self.block_line_width)
+        block = self.canvas.create_rectangle(x-corner_dist, y-corner_dist,
+                                             x+corner_dist, y+corner_dist,
+                                             tags=('block', 'drawn', *tags),
+                                             fill=fill, outline=outline,
+                                             width=self.block_line_width)
+        if tooltip is not None:
+            CanvasTooltip(self.canvas, block, text=tooltip, waittime=100)
 
     def draw_robots(self, robots: Robots):
         for coord, robot in robots.items():
@@ -184,7 +190,7 @@ class Board(tk.Frame):
                                      width=self.goal_line_width,
                                      dash=".", dashoffset=3)
 
-    def draw_target_structure(self, target:CoordinateList):
+    def draw_target_structure(self, target: CoordinateList):
         for coord in target:
             self.draw_target(coord)
 
