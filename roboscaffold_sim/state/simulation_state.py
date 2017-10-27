@@ -56,7 +56,6 @@ class SimulationState:
         self.target_structure: CoordinateList = []
         self.goal_stack: Goals = []
 
-        self.messages: MessageQueue = MessageQueue()
         self.builder: BuilderState = BuilderState()
         self.seed: Coordinate = Coordinate(0, 0)
         self.cache: Coordinate = Coordinate(0, 0)
