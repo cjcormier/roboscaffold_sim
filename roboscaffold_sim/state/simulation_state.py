@@ -191,15 +191,12 @@ class SimulationState:
                 #       Note: choosing this block intelligently can reduce
                 #       complexity in other portions of the code
 
-                if self.neighbor_coord_is_reachable(robo_coord, next_goal.coord):
-                    if self.neighbor_coord_is_reachable(self.cache, next_goal.coord):
-                        if next_goal.type is GoalType.PLACE_SCAFFOLD:
-                            pick_type = GoalType.PICK_SCAFFOLD
-                        else:
-                            pick_type = GoalType.PICK_BUILD_BLOCK
-                        self.goal_stack.append(Goal(self.cache, pick_type, self.seed, Dir.SOUTH))
+                if self.coord_is_reachable(robo_coord, next_goal.h_coord):
+                    if next_goal.type is GoalType.PLACE_SCAFFOLD:
+                        pick_type = GoalType.PICK_SCAFFOLD
                     else:
-                        raise ValueError('need new block, but cache is unreachable')
+                        pick_type = GoalType.PICK_BUILD_BLOCK
+                    self.goal_stack.append(Goal(self.cache, pick_type, self.seed, Dir.SOUTH))
                     return True
                 else:
                     next_needed_coord = self.get_next_needed_block(next_goal.coord)
@@ -301,7 +298,7 @@ class SimulationState:
                         explored.add(search_tuple)
 
     # TODO: Test
-    def neighbor_coord_is_reachable(self, start: Coordinate, goal: Coordinate,
+    def coord_is_reachable(self, start: Coordinate, goal: Coordinate,
                                     only_scaffold=True, include_cache=True):
         valid_blocks = set(self.s_blocks.keys())
         if start == goal:
@@ -322,7 +319,7 @@ class SimulationState:
             neighbors = set()
             for coord in working_set:
                 new_neighbors = coord.get_neighbors()
-                if goal in new_neighbors:
+                if goal in new_neighbors and goal in valid_blocks:
                     return True
                 for neighbor in new_neighbors:
                     valid_coordinate = neighbor.x >= 0 and neighbor.y >= 0
