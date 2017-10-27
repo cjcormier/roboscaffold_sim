@@ -174,6 +174,7 @@ class SimulationState:
                 return True
 
         elif next_goal.type is GoalType.PLACE_BUILD_BLOCK or GoalType.PLACE_SCAFFOLD:
+            # TODO: seperate these states, placing build and scaffolding have different semantics
             # TODO: check if scaffolding is in the way of build block
             if self.compare_block_and_instruction(robot.held_block, next_goal.type):
                 return True
