@@ -18,6 +18,6 @@ target_structure = [Coordinate(5, 5)]
 sim = SimulationState.create_with_target_structure(target_structure)
 
 root = tk.Tk()
-player = BasicPlayer(root, sim, load_to=10)
+player = BasicPlayer(root, sim, load_to=100)
 player.grid()
 root.mainloop()
