@@ -167,15 +167,18 @@ class SimulationState:
                 return True
 
         elif next_goal.type is GoalType.PLACE_BUILD_BLOCK or GoalType.PLACE_SCAFFOLD:
-
-            # check if we can reach this location
-            # if we can, add the block pick goal
-            # if we can't, find a block we can get to that helps us on our way
-
             # TODO: check if scaffolding is in the way of build block
             if robot.held_block is next_goal.type:
                 return True
             elif robot.held_block is HeldBlock.NONE:
+
+                # Before just saying to get the block for the location we look ahead
+                # check if we can reach this location
+                # if we can, add the block pick goal
+                # if we can't, find a block we can get to that helps us on our way
+                #       Note: choosing this block intelligently can reduce
+                #       complexity in other portions of the code
+
                 if self.neighbor_coord_is_reachable(robo_coord, next_goal.coord):
                     if self.neighbor_coord_is_reachable(self.cache, next_goal.coord):
                         if next_goal.type is GoalType.PLACE_SCAFFOLD:
