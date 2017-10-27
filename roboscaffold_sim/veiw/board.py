@@ -25,15 +25,16 @@ class Board(tk.Frame):
         self.line_width = 3
         self.block_line_width = 4
         self.goal_line_width = 3
+        self.robot_line_width = 3
         self.block_gap = 3
         self.robot_gap = self.block_line_width + 3
         self.target_gap = 3
 
         self.grid_color = "#000"
-        self.s_block_color = '#000'
+        self.s_block_color = '#fff'
         self.b_block_color = '#000'
         self.block_color = '#000'
-        self.robot_color = None
+        self.robot_color = "#000"
         self.background_color = '#888'
 
         self.scaffold_colors = {
@@ -173,6 +174,7 @@ class Board(tk.Frame):
         outline = self.robot_color
 
         robot_drawing = self.canvas.create_polygon(*vertices, fill=fill, outline=outline,
+                                                   width=self.goal_line_width,
                                                    tag=('robot', 'drawn'))
 
         CanvasTooltip(self.canvas, robot_drawing, waittime=100,

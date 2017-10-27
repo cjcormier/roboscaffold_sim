@@ -4,11 +4,13 @@ import tkinter as tk
 class StateControls(tk.Frame):
     def __init__(self, parent,
                  updater=lambda x: None,
+                 loader=lambda x: None,
                  *args, **kwargs):
         tk.Frame.__init__(self, parent,
                           *args, **kwargs)
         self.parent = parent
         self.updater = updater
+        self.loader = loader
 
         self.rows = 5
         self.row_frames = [tk.Frame(self) for _ in range(self.rows)]
@@ -77,7 +79,7 @@ class StateControls(tk.Frame):
 
         self.load_textbox = tk.Text(self.row_frames[3], width=6, height=1)
         self.load_textbox.grid(row=0, column=1, sticky='we')
-        self.load_textbox.insert('1.0', '1')
+        self.load_textbox.insert('1.0', 100)
         self.load_textbox_color = self.rate_textbox.cget('background')
 
         self.pause()
@@ -155,13 +157,14 @@ class StateControls(tk.Frame):
                 load = int(text)
                 if not 1 <= load <= 1000:
                     self.load_textbox.delete('1.0', 'end')
-                    self.load_textbox.insert('1.0', 1)
+                    self.load_textbox.insert('1.0', 100)
                     load = 1
             except ValueError:
                 self.load_textbox.delete('1.0', 'end')
-                self.load_textbox.insert('1.0', 1)
+                self.load_textbox.insert('1.0', 100)
                 load = 1
         print(f'Load: {load}')
+        self.loader(load)
         if self.finished:
             print('No more to load')
 
