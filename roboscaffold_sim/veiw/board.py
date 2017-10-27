@@ -129,8 +129,7 @@ class Board(tk.Frame):
         self.draw_b_blocks(sim.b_blocks)
         self.draw_robots(sim.robots)
         self.draw_target_structure(sim.target_structure)
-        if len(sim.goal_stack) > 0:
-            self.draw_goal(sim.goal_stack[-1])
+        self.draw_goals(sim.goal_stack)
 
     def draw_s_blocks(self, s_blocks: SBlocks):
         for coord, block in s_blocks.items():
@@ -163,7 +162,7 @@ class Board(tk.Frame):
             self.draw_robot(coord, robot)
 
     def draw_robot(self, coord: Coordinate, robot: BuilderState):
-        edge_size = self.grid_size - self.block_line_width - 2*self.block_gap\
+        edge_size = self.grid_size - self.block_line_width - 2*self.block_gap \
                     - 2*self.robot_gap
 
         x, y = self.get_grid_center(coord)
@@ -180,10 +179,10 @@ class Board(tk.Frame):
                       text=f'Robot carrying {robot.held_block.name}')
 
     def draw_goals(self, goals: Goals):
-        for goal in goals:
-            self.draw_goal(goal)
+        for count, goal in enumerate(goals):
+            self.draw_goal(goal, count)
 
-    def draw_goal(self, goal: Goal):
+    def draw_goal(self, goal: Goal, step=None):
         edge_size = self.grid_size - 2*self.block_line_width - 2*self.block_gap
         corner_dist = (edge_size+1)//2
         x, y = self.get_grid_center(goal.coord)
@@ -194,16 +193,21 @@ class Board(tk.Frame):
                                                     tags=('goal', 'drawn'), outline=color,
                                                     width=self.goal_line_width,
                                                     dash=".", dashoffset=3)
-
         CanvasTooltip(self.canvas, goal_drawing, waittime=100,
                       text=f'GOAL: {goal.type.name}')
+
+        if step is not None:
+            goal_label = self.canvas.create_text(x, y, text=str(step),
+                                                 tags=('goal', 'drawn'))
+            CanvasTooltip(self.canvas, goal_label, waittime=100,
+                          text=f'GOAL: {goal.type.name}')
 
     def draw_target_structure(self, target: CoordinateList):
         for coord in target:
             self.draw_target(coord)
 
     def draw_target(self, coord: Coordinate):
-        edge_size = self.grid_size - 2*self.block_line_width - 2*self.block_gap - 2* self.target_gap
+        edge_size = self.grid_size - 2*self.block_line_width - 2*self.block_gap - 2*self.target_gap
         corner_dist = (edge_size+1)//2
         x, y = self.get_grid_center(coord)
         color = self.b_block_color

@@ -141,6 +141,7 @@ class SimulationState:
 
     # TODO: clean up method
     # TODO: Test
+    # TODO; Better function names
     def process_goals(self):
         """Determines the next goal if needed, returns if the scaffolding should update"""
         if len(self.target_structure) == 0:
@@ -166,6 +167,10 @@ class SimulationState:
                 return True
 
         elif next_goal.type is GoalType.PLACE_BUILD_BLOCK or GoalType.PLACE_SCAFFOLD:
+
+            # check if we can reach this location
+            # if we can, add the block pick goal
+            # if we can't, find a block we can get to that helps us on our way
 
             # TODO: check if scaffolding is in the way of build block
             if robot.held_block is next_goal.type:
@@ -206,8 +211,8 @@ class SimulationState:
                 return path_coord
         raise ValueError('already a path there')
 
-    def get_path_to(self, start: Coordinate, goal: Coordinate, only_scaffold=True) -> \
-            List[Coordinate]:
+    def get_path_to(self, start: Coordinate, goal: Coordinate, only_scaffold=True,
+                    avoid_cache=True) -> List[Coordinate]:
 
         class SearchTuple(NamedTuple):
             coord: Coordinate
@@ -247,11 +252,11 @@ class SimulationState:
                     valid_coordinate = neighbor.x >= 0 and neighbor.y >= 0
                     valid_block = neighbor not in invalid_blocks and \
                         (neighbor in self.s_blocks or not only_scaffold)
-                    not_cache = neighbor != self.cache
+                    cache_check = neighbor != self.cache if avoid_cache else True
 
                     search_tuple = SearchTuple(neighbor, new_path)
                     if valid_coordinate and neighbor not in explored:
-                        if valid_block and not_cache:
+                        if valid_block and cache_check:
                             neighbors.add(search_tuple)
                         explored.add(search_tuple)
 
@@ -281,7 +286,7 @@ class SimulationState:
                     return True
                 for neighbor in new_neighbors:
                     valid_coordinate = neighbor.x >= 0 and neighbor.y >= 0
-                    valid_block = neighbor not in valid_blocks
+                    valid_block = neighbor in valid_blocks
 
                     if valid_coordinate and neighbor not in explored:
                         if valid_block:
