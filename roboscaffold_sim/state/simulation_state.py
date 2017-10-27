@@ -47,6 +47,7 @@ class SimulationState:
         self.s_blocks: SBlocks = dict()
         self.b_blocks: BBlocks = dict()
         self.robots: Robots = dict()
+        self.unneeded_b_blocks = dict()
 
         self.target_structure: CoordinateList = []
         self.goal_stack: Goals = []
@@ -345,12 +346,12 @@ class SimulationState:
                 self.move_robot(coord, robot)
             elif block_instruction is ScaffoldInstruction.PICK_LEFT:
                 robot.turn('left')
-                self.pick(coord, robot, block_instruction)
+                self.pick(coord, robot, self.goal_stack[-1].type)
             elif block_instruction is ScaffoldInstruction.PICK_RIGHT:
                 robot.turn('right')
-                self.pick(coord, robot, block_instruction)
+                self.pick(coord, robot, self.goal_stack[-1].type)
             elif block_instruction is ScaffoldInstruction.PICK_FORWARD:
-                self.pick(coord, robot, block_instruction)
+                self.pick(coord, robot, self.goal_stack[-1].type)
             elif block_instruction is ScaffoldInstruction.DROP_LEFT:
                 robot.turn('left')
                 self.drop(coord, robot)
@@ -360,13 +361,14 @@ class SimulationState:
             elif block_instruction is ScaffoldInstruction.DROP_FORWARD:
                 self.drop(coord, robot)
 
-    def pick(self, robo_coord: Coordinate, robot: BuilderState, instruction: GoalType):
-        self.validate_robot_position(robo_coord)
+    def pick(self, robo_coord: Coordinate, robot: BuilderState, goal_type: GoalType):
         block_coord = robo_coord.get_coord_in_direction(robot.direction)
-        if self.goal_stack[-1].type is GoalType.PICK_SCAFFOLD:
+        if goal_type.type is GoalType.PICK_SCAFFOLD:
             wanted_block = HeldBlock.SCAFFOLD
-        else:
+        elif goal_type.type is GoalType.PICK_BUILD_BLOCK:
             wanted_block = HeldBlock.BUILD
+        else:
+            raise Exception('Invalid GoalType for picking')
 
         if block_coord in self.s_blocks and wanted_block is HeldBlock.SCAFFOLD:
             del self.s_blocks[block_coord]
@@ -380,7 +382,6 @@ class SimulationState:
         robot.held_block = wanted_block
 
     def drop(self, robo_coord: Coordinate, robot: BuilderState):
-        self.validate_robot_position(robo_coord)
         block_coord = robo_coord.get_coord_in_direction(robot.direction)
         if robot.held_block is HeldBlock.NONE:
             raise ValueError('Cannot drop NONE Block')
@@ -396,7 +397,6 @@ class SimulationState:
         robot.held_block = HeldBlock.NONE
 
     def move_robot(self, robo_coord: Coordinate, robot: BuilderState):
-        self.validate_robot_position(robo_coord)
         new_coords = robo_coord.get_coord_in_direction(robot.direction)
         if new_coords in self.robots:
             raise ValueError('Robot in moving position')
@@ -405,10 +405,6 @@ class SimulationState:
 
         del self.robots[robo_coord]
         self.robots[new_coords] = robot
-
-    def validate_robot_position(self, robo_coord: Coordinate):
-        if robo_coord not in self.robots:
-            raise ValueError('Robot does not exist at Coordinates')
 
     def update_scaffolding(self):
         # assumtions:
