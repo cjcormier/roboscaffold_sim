@@ -6,7 +6,7 @@ from roboscaffold_sim.veiw.state_controls import StateControls
 
 
 class BasicPlayer(tk.Frame):
-    def __init__(self, parent, starting_state=SimulationState(), load_to=200,
+    def __init__(self, parent, starting_state=SimulationState(), load_to=1000,
                  *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent

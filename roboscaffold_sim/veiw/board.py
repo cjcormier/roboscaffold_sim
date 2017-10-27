@@ -39,7 +39,7 @@ class Board(tk.Frame):
 
         self.scaffold_colors = {
             ScaffoldInstruction.NONE: '#888',
-            ScaffoldInstruction.STOP: '#FFF',
+            ScaffoldInstruction.STOP: '#fff',
 
             ScaffoldInstruction.DRIVE_LEFT: '#800',
             ScaffoldInstruction.DRIVE_RIGHT: '#080',
@@ -48,6 +48,7 @@ class Board(tk.Frame):
             ScaffoldInstruction.PICK_LEFT: '#ff0',
             ScaffoldInstruction.PICK_RIGHT: '#0ff',
             ScaffoldInstruction.PICK_FORWARD: '#f0f',
+            ScaffoldInstruction.PICK_BACK: '#808',
 
             ScaffoldInstruction.DROP_LEFT: '#f00',
             ScaffoldInstruction.DROP_RIGHT: '#0f0',
