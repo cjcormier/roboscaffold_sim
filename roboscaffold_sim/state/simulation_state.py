@@ -71,6 +71,7 @@ class SimulationState:
     def create_with_target_structure(target: CoordinateList):
         sim: T = SimulationState.create_base_sim()
         if SimulationState.validate_target_structure(target):
+            target.sort(key=lambda coord: (coord.x, -coord.y))
             sim.target_structure = target
             return sim
         else:
@@ -100,7 +101,6 @@ class SimulationState:
             new_y = coord.y - min_y - 1
             new_target.append(Coordinate(new_x, new_y))
 
-        new_target.sort(key=lambda coord: (-coord.x, coord.y))
         return new_target
 
     def update(self):
