@@ -26,6 +26,8 @@ class GoalType(Enum):
 class Goal(NamedTuple):
     coord: Coordinate
     type: GoalType
+    h_coord: Coordinate
+    dir: Dir
 
     def __repr__(self):
         return f'{self.coord}:{self.type.name}'
@@ -156,12 +158,13 @@ class SimulationState:
             return False
 
         if len(self.goal_stack) == 0:
-            next_b_block_location = self.get_next_unfinished_block()
-            if next_b_block_location is None:
+            next_b_block_coord = self.get_next_unfinished_block()
+            if next_b_block_coord is None:
                 self.finished = True
                 return False
             else:
-                new_goal = Goal(next_b_block_location, GoalType.PLACE_BUILD_BLOCK)
+                h_coord = next_b_block_coord + Coordinate(1, 0)
+                new_goal = Goal(next_b_block_coord, GoalType.PLACE_BUILD_BLOCK, h_coord, Dir.WEST)
                 self.goal_stack = [new_goal]
 
         robo_coord, robot = self.get_single_robot()
@@ -177,7 +180,7 @@ class SimulationState:
         elif next_goal.type is GoalType.PLACE_BUILD_BLOCK or GoalType.PLACE_SCAFFOLD:
             # TODO: seperate these states, placing build and scaffolding have different semantics
             # TODO: check if scaffolding is in the way of build block
-            if self.compare_block_and_instruction(robot.held_block, next_goal.type):
+            if SimulationState.compare_block_and_goal(robot.held_block, next_goal.type):
                 return True
             elif robot.held_block is HeldBlock.NONE:
 
@@ -194,14 +197,20 @@ class SimulationState:
                             pick_type = GoalType.PICK_SCAFFOLD
                         else:
                             pick_type = GoalType.PICK_BUILD_BLOCK
-                        self.goal_stack.append(Goal(self.cache, pick_type))
+                        self.goal_stack.append(Goal(self.cache, pick_type, self.seed, Dir.SOUTH))
                     else:
                         raise ValueError('need new block, but cache is unreachable')
                     return True
                 else:
                     next_needed_coord = self.get_next_needed_block(next_goal.coord)
+                    if next_needed_coord.y == 0:
+                        h_coord = next_needed_coord + Coordinate(-1, 0)
+                        dir = Dir.EAST
+                    else:
+                        h_coord = next_needed_coord + Coordinate(0, -1)
+                        dir = Dir.SOUTH
                     self.goal_stack.append(
-                        Goal(next_needed_coord, GoalType.PLACE_SCAFFOLD))
+                        Goal(next_needed_coord, GoalType.PLACE_SCAFFOLD, h_coord, dir))
                     # TODO: make iterative instead of recursive?
                     return self.process_goals()
             else:
@@ -209,8 +218,8 @@ class SimulationState:
 
         return False
 
-    def compare_block_and_instruction(self, block: HeldBlock,
-                                      goal: GoalType) -> bool:
+    @staticmethod
+    def compare_block_and_goal(block: HeldBlock, goal: GoalType) -> bool:
         if goal == GoalType.PICK_SCAFFOLD or goal == GoalType.PLACE_SCAFFOLD:
             return block is HeldBlock.SCAFFOLD
         else:
@@ -363,9 +372,9 @@ class SimulationState:
 
     def pick(self, robo_coord: Coordinate, robot: BuilderState, goal_type: GoalType):
         block_coord = robo_coord.get_coord_in_direction(robot.direction)
-        if goal_type.type is GoalType.PICK_SCAFFOLD:
+        if goal_type is GoalType.PICK_SCAFFOLD:
             wanted_block = HeldBlock.SCAFFOLD
-        elif goal_type.type is GoalType.PICK_BUILD_BLOCK:
+        elif goal_type is GoalType.PICK_BUILD_BLOCK:
             wanted_block = HeldBlock.BUILD
         else:
             raise Exception('Invalid GoalType for picking')
@@ -408,89 +417,58 @@ class SimulationState:
 
     def update_scaffolding(self):
         # assumtions:
-        #   seed is at (0,0) and all block coords >=0
-        #   only picks up blocks from the seed
         #
         #   always places build blocks to the west
         #   always places scaffolding blocks to the east or south
         #
-        #   three turns total at most: at start, in path, at goal
+        #   four turns total at most: at start, onto the spine, off the spine , at goal
+        #       some of these will either be unneeded or be at the same block
         #
-        #   if not on scaffold row, can return by going north
-        #   if not on scaffold column can return by going east
+        #   if not on the spine, return by going north
+        #   if not on scaffold column, return by going to the spine and moving horizontally
         next_goal = self.goal_stack[-1]
-        g_coord = next_goal.coord
-        robot_coord, robot = self.get_single_robot()
+        h_coord = next_goal.h_coord
+        robo_coord, robot = self.get_single_robot()
+
         working_dir = robot.direction
+        working_y = robo_coord.y
+
         for _, block in self.s_blocks.items():
             block.instruction = ScaffoldInstruction.NONE
 
-        standing_block: ScaffoldState = self.s_blocks[robot_coord]
+        start_block: ScaffoldState = self.s_blocks[robo_coord]
 
-        if next_goal.type == GoalType.PICK_BUILD_BLOCK or \
-                next_goal.type == GoalType.PICK_SCAFFOLD:
+        on_spine_coord: Coordinate = Coordinate(robo_coord.x, 0)
+        on_spine_block: ScaffoldState = self.s_blocks[on_spine_coord]
 
-            path_block: ScaffoldState = self.s_blocks[Coordinate(robot_coord.x, 0)]
-            goal_block: ScaffoldState = self.s_blocks[Coordinate(0, 0)]
+        off_spine_coord: Coordinate = Coordinate(h_coord.x, 0)
+        off_spine_block: ScaffoldState = self.s_blocks[off_spine_coord]
 
-            if robot_coord.y != 0:
-                standing_block.instruction = \
-                    SimulationState.get_drive_instruction(working_dir, Dir.NORTH)
+        goal_block: ScaffoldState = self.s_blocks[h_coord]
+
+        if robo_coord.x != h_coord.x:
+            if robo_coord.y != 0:
+                start_block.instruction = self.get_drive_instruction(working_dir, Dir.NORTH)
                 working_dir = Dir.NORTH
 
-            if robot_coord.x != 0:
-                path_block.instruction = \
-                    SimulationState.get_drive_instruction(working_dir, Dir.WEST)
-                working_dir = Dir.WEST
+            move_dir = Dir.EAST if h_coord.x > robo_coord.x else Dir.WEST
+            on_spine_block.instruction = self.get_drive_instruction(working_dir, move_dir)
+            working_dir = move_dir
+            working_y = 0
 
-            goal_block.instruction = \
-                SimulationState.get_pick_instruction(working_dir, Dir.SOUTH)
+        if working_y != h_coord.y:
+            off_spine_block.instruction = self.get_drive_instruction(working_dir, Dir.SOUTH)
+            working_dir = Dir.SOUTH
 
-        elif next_goal.type == GoalType.PLACE_BUILD_BLOCK:
-            path_block: ScaffoldState = self.s_blocks[Coordinate(g_coord.x+1, 0)]
-            goal_block: ScaffoldState = self.s_blocks[Coordinate(g_coord.x+1, g_coord.y)]
+        if next_goal.type in [GoalType.PLACE_BUILD_BLOCK, GoalType.PLACE_SCAFFOLD]:
+            goal_instruction = self.get_drop_instruction(working_dir, next_goal.dir)
+        elif next_goal.type in [GoalType.PICK_BUILD_BLOCK, GoalType.PICK_SCAFFOLD]:
+            goal_instruction = self.get_pick_instruction(working_dir, next_goal.dir)
+        else:
+            raise Exception('Invalid goal type')
 
-            if robot_coord.x != g_coord.x+1:
-                standing_block.instruction = \
-                    SimulationState.get_drive_instruction(working_dir, Dir.EAST)
-                working_dir = Dir.EAST
+        goal_block.instruction = goal_instruction
 
-            if robot_coord.y != g_coord.y:
-                path_block.instruction = \
-                    SimulationState.get_drive_instruction(working_dir, Dir.SOUTH)
-                working_dir = Dir.SOUTH
-
-            goal_block.instruction = \
-                SimulationState.get_drop_instruction(working_dir, Dir.WEST)
-
-        elif next_goal.type == GoalType.PLACE_SCAFFOLD:
-
-            if g_coord.y == 0:
-                goal_block: ScaffoldState = self.s_blocks[Coordinate(g_coord.x-1, 0)]
-
-                if robot_coord.x != g_coord.x-1:
-                    standing_block.instruction = \
-                        SimulationState.get_drive_instruction(working_dir, Dir.EAST)
-                    working_dir = Dir.EAST
-
-                goal_block.instruction = self.get_drop_instruction(working_dir, Dir.EAST)
-
-            else:
-                path_block: ScaffoldState = self.s_blocks[Coordinate(g_coord.x, 0)]
-                goal_block: ScaffoldState = self.s_blocks[Coordinate(g_coord.x, g_coord.y-1)]
-
-                if robot_coord.x != g_coord.x:
-                    standing_block.instruction = \
-                        SimulationState.get_drive_instruction(working_dir, Dir.EAST)
-                    working_dir = Dir.EAST
-
-                if robot_coord.y != g_coord.y -1:
-                    path_block.instruction = \
-                        SimulationState.get_drive_instruction(working_dir, Dir.SOUTH)
-                    working_dir = Dir.SOUTH
-
-                goal_block.instruction = \
-                    SimulationState.get_drop_instruction(working_dir, Dir.SOUTH)
 
     @staticmethod
     def get_drive_instruction(curr_dir: Dir, desired_dir: Dir) \
