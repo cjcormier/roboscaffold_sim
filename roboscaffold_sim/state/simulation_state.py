@@ -31,6 +31,8 @@ class Goal(NamedTuple):
 
 Goals = List[Optional[Goal]]
 T = TypeVar('T', bound='SimulationState')
+
+
 # TODO: make exceptions
 # TODO: make interface/abstract class and sub classes
 # TODO: function type hinting
@@ -108,32 +110,28 @@ class SimulationState:
             self.update_robots()
 
     def validate_goals(self):
-        process_goals = False
 
-        # TODO: is a while loop needed
-        while True:
-            if len(self.goal_stack) == 0:
-                process_goals = True
-                break
+        if len(self.goal_stack) == 0:
+            return True
 
-            curr_goal = self.goal_stack[-1]
+        curr_goal = self.goal_stack[-1]
+        valid_place_scaffold = curr_goal.type == GoalType.PLACE_SCAFFOLD and \
+            curr_goal.coord in self.s_blocks
+        valid_place_block = curr_goal.type == GoalType.PLACE_BUILD_BLOCK and \
+            curr_goal.coord in self.b_blocks
+        valid_pick_scaffold = curr_goal.type == GoalType.PICK_SCAFFOLD and \
+            curr_goal.coord not in self.s_blocks
+        valid_pick_block = curr_goal.type == GoalType.PICK_BUILD_BLOCK and \
+            curr_goal.coord not in self.b_blocks
 
-            if curr_goal.type == GoalType.PLACE_SCAFFOLD and curr_goal.coord in self.s_blocks:
-                pass
-            elif curr_goal.type == GoalType.PLACE_BUILD_BLOCK and curr_goal.coord in self.b_blocks:
-                pass
-            elif curr_goal.type == GoalType.PICK_SCAFFOLD and curr_goal.coord not in self.s_blocks:
-                pass
-            elif curr_goal.type == GoalType.PICK_BUILD_BLOCK and curr_goal.coord not in self.b_blocks:
-                pass
-            else:
-                break
-
+        if valid_place_scaffold or valid_place_block or \
+                valid_pick_scaffold or valid_pick_block:
             self.goal_stack = self.goal_stack[0:-1]
-            process_goals = True
+            return True
 
-        return process_goals
+        return False
 
+    # TODO: make getting robot better
     def get_single_robot(self) -> Tuple[Coordinate, BuilderState]:
         if len(self.robots) != 1:
             ValueError('this method requires exactly one robot in the state')
@@ -144,7 +142,7 @@ class SimulationState:
     # TODO: clean up method
     # TODO: Test
     def process_goals(self):
-        """Determines the next goal if needed and returns if the scaffolding should update"""
+        """Determines the next goal if needed, returns if the scaffolding should update"""
         if len(self.target_structure) == 0:
             return False
 
@@ -160,8 +158,8 @@ class SimulationState:
         robo_coord, robot = self.get_single_robot()
 
         next_goal = self.goal_stack[-1]
-        # TODO: make getting robot better
-        if next_goal.type is GoalType.PICK_BUILD_BLOCK or next_goal.type is GoalType.PICK_SCAFFOLD:
+        if next_goal.type is GoalType.PICK_BUILD_BLOCK or \
+                next_goal.type is GoalType.PICK_SCAFFOLD:
             if robot.held_block is not HeldBlock.NONE:
                 raise ValueError('Holding block when next goal is picking a block')
             else:
@@ -175,15 +173,19 @@ class SimulationState:
             elif robot.held_block is HeldBlock.NONE:
                 if self.neighbor_coord_is_reachable(robo_coord, next_goal.coord):
                     if self.neighbor_coord_is_reachable(self.cache, next_goal.coord):
-                        pick_type = GoalType.PICK_SCAFFOLD if next_goal.type is GoalType.PLACE_SCAFFOLD \
-                            else GoalType.PICK_BUILD_BLOCK
+                        if next_goal.type is GoalType.PLACE_SCAFFOLD:
+                            pick_type = GoalType.PICK_SCAFFOLD
+                        else:
+                            pick_type = GoalType.PICK_BUILD_BLOCK
                         self.goal_stack.append(Goal(self.cache, pick_type))
                     else:
                         raise ValueError('need new block, but cache is unreachable')
                     return True
                 else:
-                    next_needed_coord = self.get_next_needed_block(robo_coord, next_goal.coord)
-                    self.goal_stack.append(Goal(next_needed_coord, GoalType.PLACE_SCAFFOLD))
+                    next_needed_coord = self.get_next_needed_block(robo_coord,
+                                                                   next_goal.coord)
+                    self.goal_stack.append(
+                        Goal(next_needed_coord, GoalType.PLACE_SCAFFOLD))
                     # TODO: make iterative instead of recursive?
                     return self.process_goals()
             else:
@@ -204,7 +206,8 @@ class SimulationState:
                 return path_coord
         raise ValueError('already a path there')
 
-    def get_path_to(self, start: Coordinate, goal: Coordinate, only_scaffold=True) -> List[Coordinate]:
+    def get_path_to(self, start: Coordinate, goal: Coordinate, only_scaffold=True) -> \
+            List[Coordinate]:
 
         class SearchTuple(NamedTuple):
             coord: Coordinate
@@ -242,16 +245,19 @@ class SimulationState:
                     return new_path
                 for neighbor in new_neighbors:
                     valid_coordinate = neighbor.x >= 0 and neighbor.y >= 0
-                    valid_block = neighbor not in invalid_blocks and (neighbor in self.s_blocks or not only_scaffold)
+                    valid_block = neighbor not in invalid_blocks and \
+                        (neighbor in self.s_blocks or not only_scaffold)
                     not_cache = neighbor != self.cache
 
                     search_tuple = SearchTuple(neighbor, new_path)
-                    if valid_coordinate and valid_block and neighbor not in explored and not_cache:
-                        neighbors.add(search_tuple)
-                    explored.add(search_tuple)
+                    if valid_coordinate and neighbor not in explored:
+                        if valid_block and not_cache:
+                            neighbors.add(search_tuple)
+                        explored.add(search_tuple)
 
     # TODO: Test
-    def neighbor_coord_is_reachable(self, start: Coordinate, goal: Coordinate, only_scaffold=True, include_cache=True):
+    def neighbor_coord_is_reachable(self, start: Coordinate, goal: Coordinate,
+                                    only_scaffold=True, include_cache=True):
         valid_blocks = set(self.s_blocks.keys())
         if start == goal:
             return True
@@ -273,8 +279,14 @@ class SimulationState:
                 new_neighbors = coord.get_neighbors()
                 if goal in new_neighbors:
                     return True
+                for neighbor in new_neighbors:
+                    valid_coordinate = neighbor.x >= 0 and neighbor.y >= 0
+                    valid_block = neighbor not in valid_blocks
 
-                neighbors.update([x for x in new_neighbors if x in valid_blocks and x not in explored])
+                    if valid_coordinate and neighbor not in explored:
+                        if valid_block:
+                            neighbors.add(neighbor)
+                        explored.add(neighbor)
 
         return False
 
@@ -312,7 +324,10 @@ class SimulationState:
     def pick(self, robo_coord: Coordinate, robot: BuilderState, instruction: GoalType):
         self.validate_robot_position(robo_coord)
         block_coord = robo_coord.get_coord_in_direction(robot.direction)
-        wanted_block = HeldBlock.SCAFFOLD if instruction is GoalType.PICK_SCAFFOLD else HeldBlock.BUILD
+        if instruction is GoalType.PICK_SCAFFOLD:
+            wanted_block = HeldBlock.SCAFFOLD
+        else:
+            wanted_block = HeldBlock.BUILD
 
         if block_coord in self.s_blocks and wanted_block is HeldBlock.SCAFFOLD:
             del self.s_blocks[block_coord]
@@ -369,10 +384,10 @@ class SimulationStateList:
         return SimulationStateList(initial_state)
 
     @staticmethod
-    def create_with_empty_states(num_states: int=1):
+    def create_with_empty_states(num_states: int = 1):
         initial_state = SimulationState()
         states = SimulationStateList(initial_state)
-        for _ in range(num_states-1):
+        for _ in range(num_states - 1):
             states.states.append(copy.deepcopy(initial_state))
 
         return states

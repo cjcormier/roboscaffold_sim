@@ -203,7 +203,7 @@ class Board(tk.Frame):
             self.draw_target(coord)
 
     def draw_target(self, coord: Coordinate):
-        edge_size = self.grid_size - 2*self.block_line_width - 2*self.block_gap - 2*self.target_gap
+        edge_size = self.grid_size - 2*self.block_line_width - 2*self.block_gap - 2* self.target_gap
         corner_dist = (edge_size+1)//2
         x, y = self.get_grid_center(coord)
         color = self.b_block_color
