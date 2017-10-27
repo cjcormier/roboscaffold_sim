@@ -52,6 +52,6 @@ sim.robots = robots
 sim.target_structure = [get_next_coord()]
 board.draw_sim(sim)
 
-goal = Goal(get_next_coord(), GoalType.PLACE_SCAFFOLD)
+goal = Goal(get_next_coord(), GoalType.PLACE_SCAFFOLD, Coordinate(0, 0), Direction.NORTH)
 board.draw_goal(goal)
 root.mainloop()

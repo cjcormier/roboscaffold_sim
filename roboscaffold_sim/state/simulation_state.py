@@ -1,7 +1,7 @@
 import copy
 import traceback
 from enum import Enum, auto
-from typing import Dict, List, NamedTuple, Optional, TypeVar, Tuple, Set
+from typing import Dict, List, NamedTuple, Optional, TypeVar, Tuple
 
 from roboscaffold_sim.coordinate import Coordinate, CoordinateList, CoordinateSet, \
     Right, Down
@@ -23,7 +23,7 @@ class GoalType(Enum):
     PICK_SCAFFOLD = auto()
 
 
-GType = TypeVar(GoalType)
+GType = GoalType
 
 
 class Goal(NamedTuple):
@@ -52,7 +52,6 @@ class SimulationState:
         self.s_blocks: SBlocks = dict()
         self.b_blocks: BBlocks = dict()
         self.robots: Robots = dict()
-        self.unneeded_b_blocks = dict()
 
         self.target_structure: CoordinateList = []
         self.goal_stack: Goals = []
@@ -196,9 +195,22 @@ class SimulationState:
                 if self.coord_is_reachable(robo_coord, next_goal.h_coord):
                     if next_goal.type is GType.PLACE_SCAFFOLD:
                         p_type = GType.PICK_SCAFFOLD
+                        unneeded_s_blocks = list()
+                        for b_coord, block in self.s_blocks.items():
+                            if b_coord.x <= self.goal_stack[0].coord.x and b_coord.y > 0:
+                                unneeded_s_blocks.append(b_coord)
+                        if unneeded_s_blocks:
+                            unneeded_s_blocks.sort(key=lambda c: (-c.x, c.y))
+                            remove_block = unneeded_s_blocks[-1]
+                            h_coord = remove_block + Coordinate(0, -1)
+                            goal = Goal(remove_block, p_type, h_coord, Dir.SOUTH)
+                            pass
+                        else:
+                            goal = Goal(self.cache, p_type, self.seed, Dir.SOUTH)
                     else:
                         p_type = GType.PICK_BUILD_BLOCK
-                    self.goal_stack.append(Goal(self.cache, p_type, self.seed, Dir.SOUTH))
+                        goal = Goal(self.cache, p_type, self.seed, Dir.SOUTH)
+                    self.goal_stack.append(goal)
                     return True
                 else:
                     next_needed_coord = self.get_next_needed_block(next_goal.coord)
@@ -230,7 +242,6 @@ class SimulationState:
                 return coord
         return None
 
-    # TODO: be smareter about getting the next block
     def get_next_needed_block(self, goal: Coordinate) -> Coordinate:
         # first move horizontally, then vertically
         curr_block = copy.copy(self.seed)
@@ -244,62 +255,7 @@ class SimulationState:
 
         raise ValueError(f'No valid block, last block checked {curr_block}')
 
-        # path = self.get_path_to(start, goal, False)
-        # for path_coord in path:
-        #     if path_coord not in self.s_blocks:
-        #         return path_coord
-        # raise ValueError('already a path there')
-
-    def get_path_to(self, start: Coordinate, goal: Coordinate, only_scaffold=True,
-                    avoid_cache=True) -> List[Coordinate]:
-
-        class SearchTuple(NamedTuple):
-            coord: Coordinate
-            path: List[Coordinate]
-
-            def __eq__(self, other):
-                if isinstance(other, self.__class__):
-                    return self.coord == other.coord
-                return NotImplemented
-
-            def __ne__(self, other):
-                """Define a non-equality test"""
-                if isinstance(other, self.__class__):
-                    return not self.__eq__(other)
-                return NotImplemented
-
-            def __hash__(self):
-                return hash(self.coord)
-
-            def __repr__(self):
-                return f'{self.coord} -> {len(self.path)}'
-
-        invalid_blocks = set(self.b_blocks)
-        neighbors: Set[Coordinate, Tuple[Coordinate]] = {SearchTuple(start, [])}
-        explored = set()
-
-        while len(neighbors) != 0:
-            working_set = neighbors
-            neighbors = set()
-            for coord, path in working_set:
-                new_path = path[:]
-                new_path.append(coord)
-                new_neighbors = coord.get_neighbors()
-                if goal in new_neighbors:
-                    return new_path
-                for neighbor in new_neighbors:
-                    valid_coordinate = neighbor.x >= 0 and neighbor.y >= 0
-                    valid_block = neighbor not in invalid_blocks and \
-                        (neighbor in self.s_blocks or not only_scaffold)
-                    cache_check = neighbor != self.cache if avoid_cache else True
-
-                    search_tuple = SearchTuple(neighbor, new_path)
-                    if valid_coordinate and neighbor not in explored:
-                        if valid_block and cache_check:
-                            neighbors.add(search_tuple)
-                        explored.add(search_tuple)
-
-    # TODO: Test
+    # TODO: Be smarter, just check along spine
     def coord_is_reachable(self, start: Coordinate, goal: Coordinate,
                            only_scaffold=True, include_cache=True):
         valid_blocks = set(self.s_blocks.keys())
@@ -432,7 +388,7 @@ class SimulationState:
         working_dir = robot.direction
         working_y = robo_coord.y
 
-        for _, block in self.s_blocks.items():
+        for b_coord, block in self.s_blocks.items():
             block.instruction = ScaffoldInstruction.NONE
 
         start_block: ScaffoldState = self.s_blocks[robo_coord]
@@ -454,8 +410,17 @@ class SimulationState:
             on_spine_block.instruction = self.get_drive_instr(working_dir, move_dir)
             working_dir = move_dir
             working_y = 0
+        else:
+            if robo_coord.y < h_coord.y:
+                start_block.instruction = self.get_drive_instr(working_dir, Dir.SOUTH)
+                working_dir = Dir.SOUTH
+                working_y = h_coord.y
+            elif robo_coord.y > h_coord.y:
+                start_block.instruction = self.get_drive_instr(working_dir, Dir.NORTH)
+                working_dir = Dir.NORTH
+                working_y = 0
 
-        if working_y != h_coord.y:
+        if working_y != h_coord.y and working_y == 0:
             off_spine_block.instruction = self.get_drive_instr(working_dir, Dir.SOUTH)
             working_dir = Dir.SOUTH
 
