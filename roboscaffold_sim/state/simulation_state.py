@@ -207,6 +207,7 @@ class SimulationState:
                 return coord
         return None
 
+    # TODO: be smareter about getting the next block
     def get_next_needed_block(self, start: Coordinate, goal: Coordinate) -> Coordinate:
         path = self.get_path_to(start, goal, False)
         for path_coord in path:
