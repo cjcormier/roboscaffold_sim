@@ -32,8 +32,8 @@ target_structure = [
 
     Coordinate(2, 2),
 
-    # Coordinate(1, 5),
-    # Coordinate(1, 4),
+    Coordinate(1, 5),
+    Coordinate(1, 4),
     Coordinate(1, 3),
     Coordinate(1, 2),
     Coordinate(1, 1),
