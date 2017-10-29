@@ -27,16 +27,13 @@ target_structure = [
     Coordinate(4, 2),
     Coordinate(4, 1),
 
-    Coordinate(3, 5),
-    Coordinate(3, 4),
-    Coordinate(3, 3),
     Coordinate(3, 2),
     Coordinate(3, 1),
 
-    Coordinate(2, 1),
+    Coordinate(2, 2),
 
-    Coordinate(1, 5),
-    Coordinate(1, 4),
+    # Coordinate(1, 5),
+    # Coordinate(1, 4),
     Coordinate(1, 3),
     Coordinate(1, 2),
     Coordinate(1, 1),

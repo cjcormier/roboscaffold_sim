@@ -227,15 +227,20 @@ class SimulationState:
     def get_next_unneeded_block(self) -> Optional[Coordinate]:
         reach = None
         spine = None
+        h_coord = self.goal_stack[-1].h_coord
         for b_coord, block in self.s_blocks.items():
-            if b_coord.x < self.goal_stack[-1].h_coord.x and b_coord.y > 0:
-                if not reach or b_coord.x <= reach.x or b_coord.y <= reach.y:
+            if b_coord.y > 0 and (b_coord.x < h_coord.x or (b_coord.x == h_coord.x and b_coord.y > h_coord.y)):
+                if not reach or self.reach_compare(reach, b_coord):
                     reach = b_coord
-            elif b_coord.x > self.goal_stack[-1].h_coord.x:
+            elif b_coord.x > h_coord.x:
                 if not spine or b_coord.x > spine.x:
                     spine = b_coord
 
         return reach if reach else spine
+
+    @staticmethod
+    def reach_compare(reach: Coordinate, other: Coordinate) -> bool:
+        return other.x < reach.x or (other.x == reach.x and other.y > reach.y)
 
     @staticmethod
     def compare_block_and_goal(block: HeldBlock, goal: GType) -> bool:
@@ -414,7 +419,7 @@ class SimulationState:
             elif working_y > h_coord.y:
                 start_block.instruction = get_drive_instr(working_dir, Dir.NORTH)
                 working_dir = Dir.NORTH
-                working_y = 0
+                working_y = h_coord.y
 
         if working_y < h_coord.y != 0:
             off_spine_block.instruction = get_drive_instr(working_dir, Dir.SOUTH)
