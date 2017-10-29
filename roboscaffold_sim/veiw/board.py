@@ -28,7 +28,7 @@ class Board(tk.Frame):
         self.robot_line_width = 3
         self.block_gap = 3
         self.robot_gap = self.block_line_width + 3
-        self.target_gap = 3
+        self.target_gap = 6
 
         self.grid_color = "#000"
         self.s_block_color = '#fff'
