@@ -6,7 +6,6 @@ from typing import Dict, List, NamedTuple, Optional, TypeVar, Tuple
 from roboscaffold_sim.coordinate import Coordinate, CoordinateList, CoordinateSet, \
     Right, Down, Up, Left
 from roboscaffold_sim.direction import Direction as Dir
-from roboscaffold_sim.message.message_queue import MessageQueue
 from roboscaffold_sim.state.block_states import BuildingBlockState, ScaffoldState, \
     ScaffoldInstruction, get_drive_instr, get_drop_instr, get_pick_instr
 from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
@@ -149,34 +148,37 @@ class SimulationState:
         for coord, robot in self.robots.items():
             return coord, robot
 
+    def check_is_finished(self)-> bool:
+        if len(self.goal_stack) == 0:
+            struct_coord = self.get_next_unfinished_block()
+            if struct_coord is None:
+                self.finished = True
+                return True
+            else:
+                h_coord = struct_coord + Right
+                new_goal = Goal(struct_coord, GType.PLACE_BUILD_BLOCK, h_coord, Dir.WEST)
+                self.goal_stack = [new_goal]
+        return False
+
     # TODO: clean up method
     def get_new_goals(self):
         """Determines the next goal if needed, returns if the scaffolding should update"""
         if len(self.target_structure) == 0:
             return False
 
-        if len(self.goal_stack) == 0:
-            struct_coord = self.get_next_unfinished_block()
-            if struct_coord is None:
-                self.finished = True
-                return False
-            else:
-                h_coord = struct_coord + Right
-                new_goal = Goal(struct_coord, GType.PLACE_BUILD_BLOCK, h_coord, Dir.WEST)
-                self.goal_stack = [new_goal]
+        if self.check_is_finished():
+            return False
 
         robo_coord, robot = self.get_single_robot()
 
         next_goal = self.goal_stack[-1]
-        if next_goal.type is GType.PICK_BUILD_BLOCK or \
-                next_goal.type is GType.PICK_SCAFFOLD:
+        if next_goal.type in [GType.PICK_BUILD_BLOCK, GType.PICK_SCAFFOLD]:
             if robot.held_block is not HeldBlock.NONE:
                 raise ValueError('Holding block when next goal is picking a block')
             else:
                 return True
 
         elif next_goal.type is GType.PLACE_BUILD_BLOCK or GType.PLACE_SCAFFOLD:
-            # TODO: check if scaffolding is in the way of build block
             if self.compare_block_and_goal(robot.held_block, next_goal.type):
                 return True
             elif robot.held_block is HeldBlock.NONE:
