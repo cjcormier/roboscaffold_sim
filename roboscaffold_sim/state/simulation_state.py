@@ -7,7 +7,7 @@ from roboscaffold_sim.coordinate import Coordinate, CoordinateList, CoordinateSe
     Right, Down, Up, Left
 from roboscaffold_sim.direction import Direction as Dir
 from roboscaffold_sim.state.block_states import BuildingBlockState, ScaffoldState, \
-    ScaffoldInstruction, get_drive_instr, get_drop_instr, get_pick_instr
+    ScaffoldInstruction
 from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
 
 SBlocks = Dict[Coordinate, ScaffoldState]
@@ -229,7 +229,7 @@ class SimulationState:
         spine = None
         h_coord = self.goal_stack[-1].h_coord
         for b_coord, block in self.s_blocks.items():
-            if b_coord.y > 0 and (b_coord.x < h_coord.x or (b_coord.x == h_coord.x and b_coord.y > h_coord.y)):
+            if b_coord.y > 0 and self.reach_check(b_coord, h_coord):
                 if not reach or self.reach_compare(reach, b_coord):
                     reach = b_coord
             elif b_coord.x > h_coord.x:
@@ -237,6 +237,10 @@ class SimulationState:
                     spine = b_coord
 
         return reach if reach else spine
+
+    @staticmethod
+    def reach_check(b_coord: Coordinate, h_coord: Coordinate) -> bool:
+        return b_coord.x < h_coord.x or (b_coord.x == h_coord.x and b_coord.y > h_coord.y)
 
     @staticmethod
     def reach_compare(reach: Coordinate, other: Coordinate) -> bool:
@@ -372,67 +376,53 @@ class SimulationState:
         self.robots[new_coords] = robot
 
     def update_scaffolding(self):
-        # assumtions:
-        #
-        #  always places build blocks to the west
-        #  always places scaffolding blocks to the east or south
-        #
-        #  four turns total at most: at start, onto the spine, off the spine , at goal
-        #   some of these will either be unneeded or be at the same block
-        #
-        #  if not on the spine, return by going north
-        #  if not on scaffold column, return by going to the spine and moving horizontally
         next_goal = self.goal_stack[-1]
         h_coord = next_goal.h_coord
-        robo_coord, robot = self.get_single_robot()
-
-        working_dir = robot.direction
-        working_y = robo_coord.y
+        r_coord, robot = self.get_single_robot()
 
         for b_coord, block in self.s_blocks.items():
             block.instruction = ScaffoldInstruction.NONE
 
+        work_dir, work_y = self.update_start_on_blocks(r_coord, h_coord, robot.direction)
+        work_dir = self.update_off_block(h_coord, work_dir, work_y)
+        self.update_goal_block(next_goal, h_coord, work_dir)
+
+    def update_start_on_blocks(self, robo_coord: Coordinate,
+                               h_coord: Coordinate, work_dir: Dir) -> (Dir, int):
+
         start_block: ScaffoldState = self.s_blocks[robo_coord]
-
-        on_spine_coord: Coordinate = Coordinate(robo_coord.x, 0)
-        on_spine_block: ScaffoldState = self.s_blocks[on_spine_coord]
-
-        off_spine_coord: Coordinate = Coordinate(h_coord.x, 0)
-        off_spine_block: ScaffoldState = self.s_blocks[off_spine_coord]
-
-        goal_block: ScaffoldState = self.s_blocks[h_coord]
+        on_spine_block: ScaffoldState = self.s_blocks[Coordinate(robo_coord.x, 0)]
 
         if robo_coord.x != h_coord.x:
-            if working_y != 0:
-                start_block.instruction = get_drive_instr(working_dir, Dir.NORTH)
-                working_dir = Dir.NORTH
+            if robo_coord.y != 0:
+                work_dir = start_block.set_drive_instr(work_dir, Dir.NORTH)
 
             move_dir = Dir.EAST if robo_coord.x < h_coord.x else Dir.WEST
-            on_spine_block.instruction = get_drive_instr(working_dir, move_dir)
-            working_dir = move_dir
-            working_y = 0
+            work_dir = on_spine_block.set_drive_instr(work_dir, move_dir)
+            return work_dir, 0
         else:
-            if working_y < h_coord.y:
-                start_block.instruction = get_drive_instr(working_dir, Dir.SOUTH)
-                working_dir = Dir.SOUTH
-                working_y = h_coord.y
-            elif working_y > h_coord.y:
-                start_block.instruction = get_drive_instr(working_dir, Dir.NORTH)
-                working_dir = Dir.NORTH
-                working_y = h_coord.y
+            if robo_coord.y < h_coord.y:
+                work_dir = start_block.set_drive_instr(work_dir, Dir.SOUTH)
+                return work_dir, h_coord.y
+            elif robo_coord.y > h_coord.y:
+                work_dir = start_block.set_drive_instr(work_dir, Dir.NORTH)
+                return work_dir, h_coord.y
+        return work_dir, robo_coord.y
 
-        if working_y < h_coord.y != 0:
-            off_spine_block.instruction = get_drive_instr(working_dir, Dir.SOUTH)
-            working_dir = Dir.SOUTH
+    def update_off_block(self, h_coord: Coordinate, work_dir: Dir, work_y: int) -> Dir:
+
+        off_spine_block: ScaffoldState = self.s_blocks[Coordinate(h_coord.x, 0)]
+        if work_y < h_coord.y != 0:
+            work_dir = off_spine_block.set_drive_instr(work_dir, Dir.SOUTH)
+        return work_dir
+
+    def update_goal_block(self, next_goal: Goal, h_coord: Coordinate, work_dir: Dir):
+        goal_block: ScaffoldState = self.s_blocks[h_coord]
 
         if next_goal.type in [GType.PLACE_BUILD_BLOCK, GType.PLACE_SCAFFOLD]:
-            goal_instruction = get_drop_instr(working_dir, next_goal.dir)
+            goal_block.set_drop_instr(work_dir, next_goal.dir)
         elif next_goal.type in [GType.PICK_BUILD_BLOCK, GType.PICK_SCAFFOLD]:
-            goal_instruction = get_pick_instr(working_dir, next_goal.dir)
-        else:
-            raise Exception('Invalid goal type')
-
-        goal_block.instruction = goal_instruction
+            goal_block.set_pick_instr(work_dir, next_goal.dir)
 
 
 class SimulationStateList:
