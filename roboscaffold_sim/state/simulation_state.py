@@ -235,7 +235,7 @@ class SimulationState:
                 if not spine or b_coord.x > spine.x:
                     spine = b_coord
 
-        return spine if spine else reach
+        return reach if reach else spine
 
     @staticmethod
     def compare_block_and_goal(block: HeldBlock, goal: GType) -> bool:
