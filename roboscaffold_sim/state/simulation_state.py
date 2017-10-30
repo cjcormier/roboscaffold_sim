@@ -227,7 +227,7 @@ class SimulationState:
     def get_next_unneeded_block(self) -> Optional[Coordinate]:
         reach = None
         spine = None
-        h_coord = self.goal_stack[-1].h_coord
+        h_coord = self.goal_stack[0].h_coord
         for b_coord, block in self.s_blocks.items():
             if b_coord.y > 0 and self.reach_check(b_coord, h_coord):
                 if not reach or self.reach_compare(reach, b_coord):
@@ -244,7 +244,7 @@ class SimulationState:
 
     @staticmethod
     def reach_compare(reach: Coordinate, other: Coordinate) -> bool:
-        return other.x < reach.x or (other.x == reach.x and other.y > reach.y)
+        return other.x > reach.x or (other.x == reach.x and other.y > reach.y)
 
     @staticmethod
     def compare_block_and_goal(block: HeldBlock, goal: GType) -> bool:
