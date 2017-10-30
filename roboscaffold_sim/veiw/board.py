@@ -6,8 +6,8 @@ from roboscaffold_sim.coordinate import Coordinate, CoordinateList
 from roboscaffold_sim.direction import Direction
 from roboscaffold_sim.state.block_states import ScaffoldInstruction
 from roboscaffold_sim.state.builder_state import HeldBlock, BuilderState
-from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots, GoalType, \
-    Goal, Goals, SimulationState
+from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots, Goal, Goals, SimulationState
+from roboscaffold_sim.goal_type import GoalType
 from roboscaffold_sim.veiw.tooltip import CanvasTooltip
 
 Color = str
@@ -171,7 +171,7 @@ class Board(tk.Frame):
 
         vertices = self.get_triangle_vertices(x, y, edge_size, robot.direction)
 
-        fill = self.builder_colors[robot.held_block]
+        fill = self.builder_colors[robot.block]
         outline = self.robot_color
 
         robot_drawing = self.canvas.create_polygon(*vertices, fill=fill, outline=outline,
@@ -179,7 +179,7 @@ class Board(tk.Frame):
                                                    tag=('robot', 'drawn'))
 
         CanvasTooltip(self.canvas, robot_drawing, waittime=100,
-                      text=f'Robot carrying {robot.held_block.name}')
+                      text=f'Robot carrying {robot.block.name}')
 
     def draw_goals(self, goals: Goals):
         for count, goal in enumerate(goals):

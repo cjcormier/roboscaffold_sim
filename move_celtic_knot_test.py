@@ -146,7 +146,7 @@ sim.s_blocks = s_blocks
 
 robot = BuilderState()
 robot.direction = Direction.EAST
-robot.held_block = HeldBlock.BUILD
+robot.block = HeldBlock.BUILD
 sim.robots = {Coordinate(1, 0): copy.copy(robot)}
 
 root = tk.Tk()

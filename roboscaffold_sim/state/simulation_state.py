@@ -1,11 +1,11 @@
 import copy
 import traceback
-from enum import Enum, auto
 from typing import Dict, List, NamedTuple, Optional, TypeVar, Tuple
 
 from roboscaffold_sim.coordinate import Coordinate, CoordinateList, CoordinateSet, \
     Right, Down, Up, Left
 from roboscaffold_sim.direction import Direction as Dir
+from roboscaffold_sim.goal_type import GoalType
 from roboscaffold_sim.state.block_states import BuildingBlockState, ScaffoldState, \
     ScaffoldInstruction
 from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
@@ -13,14 +13,6 @@ from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
 SBlocks = Dict[Coordinate, ScaffoldState]
 BBlocks = Dict[Coordinate, BuildingBlockState]
 Robots = Dict[Coordinate, BuilderState]
-
-
-class GoalType(Enum):
-    PLACE_BUILD_BLOCK = auto()
-    PLACE_SCAFFOLD = auto()
-    PICK_BUILD_BLOCK = auto()
-    PICK_SCAFFOLD = auto()
-
 
 GType = GoalType
 
@@ -33,6 +25,12 @@ class Goal(NamedTuple):
 
     def __repr__(self):
         return f'{self.coord}:{self.type.name}'
+
+    def get_block(self) -> HeldBlock:
+        if self.type.is_scaffold():
+            return HeldBlock.SCAFFOLD
+        else:
+            return HeldBlock.BUILD
 
 
 Goals = List[Optional[Goal]]
@@ -107,35 +105,32 @@ class SimulationState:
         return new_target
 
     def update(self):
-        goal_finished = self.check_for_finished_goals()
+        robo_coord, robot = self.get_single_robot()
+        goal_finished = self.check_for_finished_goals(robot)
         update_scaffolding = False
         if goal_finished:
-            update_scaffolding = self.get_new_goals()
+            update_scaffolding = self.determine_new_goals(robo_coord, robot)
 
         if update_scaffolding:
-            self.update_scaffolding()
+            self.update_scaffolding(robo_coord, robot)
         else:
             if not self.finished:
                 self.update_robots()
 
-    def check_for_finished_goals(self):
+    def check_for_finished_goals(self, robot: BuilderState):
 
         if len(self.goal_stack) == 0:
             return True
 
-        curr_goal = self.goal_stack[-1]
-        robo_coord, robot = self.get_single_robot()
-        valid_place_scaffold = curr_goal.type == GType.PLACE_SCAFFOLD and \
-            curr_goal.coord in self.s_blocks
-        valid_place_block = curr_goal.type == GType.PLACE_BUILD_BLOCK and \
-            curr_goal.coord in self.b_blocks
-        valid_pick_scaffold = curr_goal.type == GType.PICK_SCAFFOLD and \
-            robot.held_block is HeldBlock.SCAFFOLD
-        valid_pick_block = curr_goal.type == GType.PICK_BUILD_BLOCK and \
-            robot.held_block is HeldBlock.BUILD
+        g_coord = self.goal_stack[-1].coord
+        g_type = self.goal_stack[-1].type
+        held_block = robot.block
+        place_s_done = g_type == GType.PLACE_SCAFFOLD and g_coord in self.s_blocks
+        place_b_done = g_type == GType.PLACE_BUILD_BLOCK and g_coord in self.b_blocks
+        pick_s_done = g_type == GType.PICK_SCAFFOLD and held_block is HeldBlock.SCAFFOLD
+        pick_b_done = g_type == GType.PICK_BUILD_BLOCK and held_block is HeldBlock.BUILD
 
-        if valid_place_scaffold or valid_place_block or \
-                valid_pick_scaffold or valid_pick_block:
+        if place_s_done or place_b_done or pick_s_done or pick_b_done:
             self.goal_stack = self.goal_stack[0:-1]
             return True
 
@@ -160,8 +155,7 @@ class SimulationState:
                 self.goal_stack = [new_goal]
         return False
 
-    # TODO: clean up method
-    def get_new_goals(self):
+    def determine_new_goals(self, robo_coord, robot: BuilderState) -> bool:
         """Determines the next goal if needed, returns if the scaffolding should update"""
         if len(self.target_structure) == 0:
             return False
@@ -169,60 +163,69 @@ class SimulationState:
         if self.check_is_finished():
             return False
 
-        robo_coord, robot = self.get_single_robot()
-
         next_goal = self.goal_stack[-1]
-        if next_goal.type in [GType.PICK_BUILD_BLOCK, GType.PICK_SCAFFOLD]:
-            if robot.held_block is not HeldBlock.NONE:
+        if next_goal.type.is_pick() and robot.block is not HeldBlock.NONE:
                 raise ValueError('Holding block when next goal is picking a block')
-            else:
-                return True
 
-        elif next_goal.type is GType.PLACE_BUILD_BLOCK or GType.PLACE_SCAFFOLD:
-            if self.compare_block_and_goal(robot.held_block, next_goal.type):
-                return True
-            elif robot.held_block is HeldBlock.NONE:
-                if self.coord_is_reachable(robo_coord, next_goal.h_coord):
-                    if next_goal.type is GType.PLACE_SCAFFOLD:
-                        p_type = GType.PICK_SCAFFOLD
-                        unneeded_s_blocks = self.get_next_unneeded_block()
-                        if unneeded_s_blocks:
-                            coord_offset = Up if unneeded_s_blocks.y else Left
-                            p_dir = Dir.SOUTH if unneeded_s_blocks.y else Dir.EAST
-                            h_coord = unneeded_s_blocks + coord_offset
-                            goal = Goal(unneeded_s_blocks, p_type, h_coord, p_dir)
-                        else:
-                            goal = Goal(self.cache, p_type, self.seed, Dir.SOUTH)
-                    else:
-                        if next_goal.coord in self.s_blocks:
-                            p_type = GType.PLACE_SCAFFOLD
-                            extend_spine = Right
-                            while extend_spine in self.s_blocks:
-                                extend_spine += Right
-                            h_coord = extend_spine + Left
-                            goal = Goal(extend_spine, p_type, h_coord, Dir.EAST)
-                            self.goal_stack.append(goal)
-                            return self.get_new_goals()
-                        else:
-                            p_type = GType.PICK_BUILD_BLOCK
-                            goal = Goal(self.cache, p_type, self.seed, Dir.SOUTH)
-                    self.goal_stack.append(goal)
-                    return True
-                else:
-                    next_needed_coord = self.get_next_needed_block(next_goal.coord)
-                    if next_needed_coord.y == 0:
-                        h_coord = next_needed_coord + Left
-                        p_dir = Dir.EAST
-                    else:
-                        h_coord = next_needed_coord + Up
-                        p_dir = Dir.SOUTH
-                    self.goal_stack.append(
-                        Goal(next_needed_coord, GType.PLACE_SCAFFOLD, h_coord, p_dir))
-                    return self.get_new_goals()
-            else:
-                raise ValueError('Held block does not match next goal')
+        elif next_goal.type.is_place():
+            return self.get_place_helper_goal(robo_coord, robot, next_goal)
 
-        return False
+        return True
+
+    def get_place_helper_goal(self, robo_coord, robot, next_goal) -> bool:
+        if robot.not_holding_block():
+            if self.coord_is_reachable(robo_coord, next_goal.h_coord):
+                goal, recurse = self.get_needed_block_goal(next_goal)
+            else:
+                goal = self.get_bridge_goal(next_goal)
+                recurse = True
+
+            self.goal_stack.append(goal)
+            if recurse:
+                return self.get_place_helper_goal(robo_coord, robot, goal)
+
+        elif robot.block != next_goal.get_block():
+            raise ValueError('Held block does not match next goal')
+        return True
+
+    def get_bridge_goal(self, next_goal: Goal) -> Goal:
+        next_needed_coord = self.get_next_needed_block(next_goal.coord)
+        if next_needed_coord.y == 0:
+            h_coord = next_needed_coord + Left
+            p_dir = Dir.EAST
+        else:
+            h_coord = next_needed_coord + Up
+            p_dir = Dir.SOUTH
+        return Goal(next_needed_coord, GType.PLACE_SCAFFOLD, h_coord, p_dir)
+
+    def get_needed_block_goal(self, next_goal: Goal) -> Tuple[Goal, bool]:
+        if next_goal.type is GType.PLACE_SCAFFOLD:
+            return self.find_usable_scaffold(), False
+        else:
+            if next_goal.coord in self.s_blocks:
+                return self.app_remove_blockage_goal(), True
+            else:
+                p_type = GType.PICK_BUILD_BLOCK
+                return Goal(self.cache, p_type, self.seed, Dir.SOUTH), False
+
+    def app_remove_blockage_goal(self) -> Goal:
+        p_type = GType.PLACE_SCAFFOLD
+        extend_spine = Right
+        while extend_spine in self.s_blocks:
+            extend_spine += Right
+        h_coord = extend_spine + Left
+        return Goal(extend_spine, p_type, h_coord, Dir.EAST)
+
+    def find_usable_scaffold(self) -> Goal:
+        p_type = GType.PICK_SCAFFOLD
+        unneeded_s_blocks = self.get_next_unneeded_block()
+        if unneeded_s_blocks:
+            coord_offset = Up if unneeded_s_blocks.y else Left
+            p_dir = Dir.SOUTH if unneeded_s_blocks.y else Dir.EAST
+            h_coord = unneeded_s_blocks + coord_offset
+            return Goal(unneeded_s_blocks, p_type, h_coord, p_dir)
+        else:
+            return Goal(self.cache, p_type, self.seed, Dir.SOUTH)
 
     def get_next_unneeded_block(self) -> Optional[Coordinate]:
         reach = None
@@ -245,13 +248,6 @@ class SimulationState:
     @staticmethod
     def reach_compare(reach: Coordinate, other: Coordinate) -> bool:
         return other.x > reach.x or (other.x == reach.x and other.y > reach.y)
-
-    @staticmethod
-    def compare_block_and_goal(block: HeldBlock, goal: GType) -> bool:
-        if goal == GType.PICK_SCAFFOLD or goal == GType.PLACE_SCAFFOLD:
-            return block is HeldBlock.SCAFFOLD
-        else:
-            return block is HeldBlock.BUILD
 
     def get_next_unfinished_block(self) -> Optional[Coordinate]:
         for coord in self.target_structure:
@@ -348,22 +344,22 @@ class SimulationState:
         else:
             raise LookupError("Invalid block found and not pointed at seed ")
 
-        robot.held_block = wanted_block
+        robot.block = wanted_block
 
     def drop(self, robo_coord: Coordinate, robot: BuilderState):
         block_coord = robo_coord.get_coord_in_direction(robot.direction)
-        if robot.held_block is HeldBlock.NONE:
+        if robot.block is HeldBlock.NONE:
             raise ValueError('Cannot drop NONE Block')
 
         if block_coord in self.b_blocks or block_coord in self.s_blocks:
             raise LookupError('Block already present')
 
-        if robot.held_block is HeldBlock.BUILD:
+        if robot.block is HeldBlock.BUILD:
             self.b_blocks[block_coord] = BuildingBlockState()
-        elif robot.held_block is HeldBlock.SCAFFOLD:
+        elif robot.block is HeldBlock.SCAFFOLD:
             self.s_blocks[block_coord] = ScaffoldState()
 
-        robot.held_block = HeldBlock.NONE
+        robot.block = HeldBlock.NONE
 
     def move_robot(self, robo_coord: Coordinate, robot: BuilderState):
         new_coords = robo_coord.get_coord_in_direction(robot.direction)
@@ -375,10 +371,9 @@ class SimulationState:
         del self.robots[robo_coord]
         self.robots[new_coords] = robot
 
-    def update_scaffolding(self):
+    def update_scaffolding(self, r_coord, robot):
         next_goal = self.goal_stack[-1]
         h_coord = next_goal.h_coord
-        r_coord, robot = self.get_single_robot()
 
         for b_coord, block in self.s_blocks.items():
             block.instruction = ScaffoldInstruction.NONE
@@ -419,9 +414,9 @@ class SimulationState:
     def update_goal_block(self, next_goal: Goal, h_coord: Coordinate, work_dir: Dir):
         goal_block: ScaffoldState = self.s_blocks[h_coord]
 
-        if next_goal.type in [GType.PLACE_BUILD_BLOCK, GType.PLACE_SCAFFOLD]:
+        if next_goal.type.is_place():
             goal_block.set_drop_instr(work_dir, next_goal.dir)
-        elif next_goal.type in [GType.PICK_BUILD_BLOCK, GType.PICK_SCAFFOLD]:
+        elif next_goal.type.is_pick():
             goal_block.set_pick_instr(work_dir, next_goal.dir)
 
 

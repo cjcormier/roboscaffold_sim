@@ -5,8 +5,8 @@ from roboscaffold_sim.direction import Direction
 from roboscaffold_sim.state.block_states import ScaffoldInstruction, ScaffoldState, \
     BuildingBlockState
 from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
-from roboscaffold_sim.state.simulation_state import Goal, GoalType, \
-    SimulationStateList
+from roboscaffold_sim.state.simulation_state import Goal, SimulationStateList
+from roboscaffold_sim.goal_type import GoalType
 from roboscaffold_sim.veiw.basic_player import BasicPlayer
 
 i = 0
@@ -33,7 +33,7 @@ b_blocks[get_next_coord()] = BuildingBlockState()
 for direction in Direction:
     for held_block in HeldBlock:
         robot = BuilderState()
-        robot.held_block = held_block
+        robot.block = held_block
         robot.direction = direction
         coord = get_next_coord()
         s_blocks[coord] = ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT)
@@ -57,7 +57,7 @@ b_blocks[get_next_coord()] = BuildingBlockState()
 for direction in Direction:
     for held_block in HeldBlock:
         robot = BuilderState()
-        robot.held_block = held_block
+        robot.block = held_block
         robot.direction = direction
         coord = get_next_coord()
         s_blocks[coord] = ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT)
