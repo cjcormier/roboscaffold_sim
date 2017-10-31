@@ -74,6 +74,7 @@ class Board(tk.Frame):
         self.canvas = tk.Canvas(self, width=needed_width, height=needed_height)
         self.canvas.configure(background=self.background_color)
         self.canvas.grid()
+        self.tooltips = []
 
     def draw_grid(self):
         previous_grid = self.canvas.find_withtag('grid')
@@ -127,6 +128,8 @@ class Board(tk.Frame):
 
     def draw_sim(self, sim: SimulationState):
         self.canvas.delete('drawn')
+        for tooltip in self.tooltips:
+            tooltip.hide()
         self.draw_s_blocks(sim.s_blocks)
         self.draw_b_blocks(sim.b_blocks)
         self.draw_robots(sim.robots)
@@ -157,7 +160,8 @@ class Board(tk.Frame):
                                              fill=fill, outline=outline,
                                              width=self.block_line_width)
         if tooltip is not None:
-            CanvasTooltip(self.canvas, block, text=tooltip, waittime=100)
+            tooltip = CanvasTooltip(self.canvas, block, text=tooltip, waittime=100)
+            self.tooltips.append(tooltip)
 
     def draw_robots(self, robots: Robots):
         for coord, robot in robots.items():
@@ -178,8 +182,9 @@ class Board(tk.Frame):
                                                    width=self.goal_line_width,
                                                    tag=('robot', 'drawn'))
 
-        CanvasTooltip(self.canvas, robot_drawing, waittime=100,
-                      text=f'Robot carrying {robot.block.name}')
+        tooltip = CanvasTooltip(self.canvas, robot_drawing, waittime=100,
+                                text=f'Robot carrying {robot.block.name}')
+        self.tooltips.append(tooltip)
 
     def draw_goals(self, goals: Goals):
         for count, goal in enumerate(goals):
@@ -196,14 +201,16 @@ class Board(tk.Frame):
                                                     tags=('goal', 'drawn'), outline=color,
                                                     width=self.goal_line_width,
                                                     dash=".", dashoffset=3)
-        CanvasTooltip(self.canvas, goal_drawing, waittime=100,
-                      text=f'GOAL: {goal.type.name}')
+        tooltip = CanvasTooltip(self.canvas, goal_drawing, waittime=100,
+                                text=f'GOAL: {goal.type.name}')
+        self.tooltips.append(tooltip)
 
         if step is not None:
             goal_label = self.canvas.create_text(x, y, text=str(step),
                                                  tags=('goal', 'drawn'))
-            CanvasTooltip(self.canvas, goal_label, waittime=100,
-                          text=f'GOAL: {goal.type.name}')
+            tooltip = CanvasTooltip(self.canvas, goal_label, waittime=100,
+                                    text=f'GOAL: {goal.type.name}')
+            self.tooltips.append(tooltip)
 
     def draw_target_structure(self, target: CoordinateList):
         for coord in target:
@@ -221,5 +228,6 @@ class Board(tk.Frame):
                                               width=self.goal_line_width,
                                               dash=".", dashoffset=31)
 
-        CanvasTooltip(self.canvas, target, waittime=100,
-                      text=f'Target Structure')
+        tooltip = CanvasTooltip(self.canvas, target, waittime=100,
+                                text=f'Target Structure')
+        self.tooltips.append(tooltip)
