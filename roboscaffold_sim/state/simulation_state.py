@@ -8,6 +8,7 @@ from roboscaffold_sim.direction import Direction as Dir
 from roboscaffold_sim.goal_type import GoalType
 from roboscaffold_sim.state.scaffolding_state import ScaffoldState, ScaffoldInstruction
 from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
+from roboscaffold_sim.errors import TargetError, RobotActionError, GoalError
 
 SBlocks = Dict[Coordinate, ScaffoldState]
 BBlocks = Set[Coordinate]
@@ -36,9 +37,7 @@ Goals = List[Optional[Goal]]
 T = TypeVar('T', bound='SimulationState')
 
 
-# TODO: make exceptions
 # TODO: make interface/abstract class and sub classes
-# TODO: function type hinting
 # TODO: docstrings
 
 
@@ -75,7 +74,7 @@ class SimulationState:
             sim.target_structure = target
             return sim
         else:
-            raise ValueError('Given target is not a valid structure')
+            raise TargetError(target, 'Given target is not a valid structure')
 
     @staticmethod
     def validate_target_structure(target: CoordinateList) -> bool:
@@ -164,7 +163,7 @@ class SimulationState:
 
         next_goal = self.goal_stack[-1]
         if next_goal.type.is_pick() and robot.block is not HeldBlock.NONE:
-                raise ValueError('Holding block when next goal is picking a block')
+                raise GoalError('Holding block when next goal is picking a block')
 
         elif next_goal.type.is_place():
             return self.get_place_helper_goal(robo_coord, robot, next_goal)
@@ -185,7 +184,7 @@ class SimulationState:
                 return self.get_place_helper_goal(robo_coord, robot, goal)
 
         elif robot.block != next_goal.get_block():
-            raise ValueError('Held block does not match next goal')
+            raise GoalError('Held block does not match next goal')
         return True
 
     def get_bridge_goal(self, next_goal: Goal) -> Goal:
@@ -266,7 +265,7 @@ class SimulationState:
             elif curr_block.y < goal.y:
                 curr_block += Down
 
-        raise ValueError(f'No valid block, last block checked {curr_block}')
+        raise GoalError(f'No valid block, last block checked {curr_block}')
 
     def coord_is_reachable(self, start: Coordinate, goal: Coordinate) -> bool:
         work_coord = Coordinate(start.x, start.y)
@@ -333,7 +332,7 @@ class SimulationState:
         elif goal_type is GType.PICK_BUILD_BLOCK:
             wanted_block = HeldBlock.BUILD
         else:
-            raise Exception('Invalid GType for picking')
+            raise RobotActionError('Invalid GType for picking')
 
         if block_coord in self.s_blocks and wanted_block is HeldBlock.SCAFFOLD:
             del self.s_blocks[block_coord]
@@ -342,17 +341,17 @@ class SimulationState:
         elif block_coord == self.cache:
             pass
         else:
-            raise LookupError("Invalid block found and not pointed at seed ")
+            raise RobotActionError("Invalid block found and not pointed at seed ")
 
         robot.block = wanted_block
 
     def drop(self, robo_coord: Coordinate, robot: BuilderState):
         block_coord = robo_coord.get_coord_in_direction(robot.direction)
         if robot.block is HeldBlock.NONE:
-            raise ValueError('Cannot drop NONE Block')
+            raise RobotActionError('Cannot drop NONE Block')
 
         if block_coord in self.b_blocks or block_coord in self.s_blocks:
-            raise LookupError('Block already present')
+            raise RobotActionError('Block already present')
 
         if robot.block is HeldBlock.BUILD:
             self.b_blocks.add(block_coord)
@@ -364,9 +363,9 @@ class SimulationState:
     def move_robot(self, robo_coord: Coordinate, robot: BuilderState):
         new_coords = robo_coord.get_coord_in_direction(robot.direction)
         if new_coords in self.robots:
-            raise ValueError('Robot in moving position')
+            raise RobotActionError('Robot in moving position')
         if new_coords not in self.s_blocks:
-            raise ValueError('Robot is moving onto a space without scaffolding')
+            raise RobotActionError('Robot is moving onto a space without scaffolding')
 
         del self.robots[robo_coord]
         self.robots[new_coords] = robot

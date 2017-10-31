@@ -19,6 +19,7 @@ class ScaffoldInstruction(Enum):
     DROP_LEFT = auto()
     DROP_RIGHT = auto()
     DROP_FORWARD = auto()
+    DROP_BEHIND = auto()
 
 
 class ScaffoldState:
@@ -40,8 +41,6 @@ class ScaffoldState:
             self.instruction = ScaffoldInstruction.DRIVE_UTURN
         elif count == 3:
             self.instruction = ScaffoldInstruction.DRIVE_RIGHT
-        else:
-            raise Exception('Should not need to turn left more than 3 times')
         return desired_dir
 
     def set_pick_instr(self, curr_dir: Direction, desired_dir: Direction) -> Direction:
@@ -59,8 +58,6 @@ class ScaffoldState:
             self.instruction = ScaffoldInstruction.PICK_BACK
         elif count == 3:
             self.instruction = ScaffoldInstruction.PICK_RIGHT
-        else:
-            raise Exception('Should not need to turn left more than 3 times')
         return desired_dir
 
     def set_drop_instr(self, curr_dir: Direction, desired_dir: Direction) -> Direction:
@@ -76,6 +73,4 @@ class ScaffoldState:
             self.instruction = ScaffoldInstruction.DROP_LEFT
         elif count == 3:
             self.instruction = ScaffoldInstruction.DROP_RIGHT
-        else:
-            raise Exception('Should not need to turn left  2 times or more than 3 times')
         return desired_dir

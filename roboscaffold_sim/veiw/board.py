@@ -48,11 +48,12 @@ class Board(tk.Frame):
             ScaffoldInstruction.PICK_LEFT: '#ff0',
             ScaffoldInstruction.PICK_RIGHT: '#0ff',
             ScaffoldInstruction.PICK_FORWARD: '#f0f',
-            ScaffoldInstruction.PICK_BACK: '#808',
+            ScaffoldInstruction.PICK_BACK: '#088',
 
             ScaffoldInstruction.DROP_LEFT: '#f00',
             ScaffoldInstruction.DROP_RIGHT: '#0f0',
-            ScaffoldInstruction.DROP_FORWARD: '#00f'
+            ScaffoldInstruction.DROP_FORWARD: '#00f',
+            ScaffoldInstruction.DROP_BEDHIND: '#808'
         }
 
         self.goal_colors = {
