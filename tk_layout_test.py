@@ -1,6 +1,6 @@
 from roboscaffold_sim.coordinate import Coordinate
 from roboscaffold_sim.direction import Direction
-from roboscaffold_sim.state.block_states import ScaffoldInstruction, ScaffoldState, \
+from roboscaffold_sim.state.scaffolding_state import ScaffoldInstruction, ScaffoldState, \
     BuildingBlockState
 from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
 from roboscaffold_sim.state.simulation_state import SimulationState, Goal

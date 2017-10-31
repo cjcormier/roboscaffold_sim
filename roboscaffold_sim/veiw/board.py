@@ -4,7 +4,7 @@ from typing import Tuple, List
 
 from roboscaffold_sim.coordinate import Coordinate, CoordinateList
 from roboscaffold_sim.direction import Direction
-from roboscaffold_sim.state.block_states import ScaffoldInstruction
+from roboscaffold_sim.state.scaffolding_state import ScaffoldInstruction
 from roboscaffold_sim.state.builder_state import HeldBlock, BuilderState
 from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots, Goal, Goals, SimulationState
 from roboscaffold_sim.goal_type import GoalType
@@ -144,7 +144,7 @@ class Board(tk.Frame):
                             tooltip=block.instruction.name)
 
     def draw_b_blocks(self, b_blocks: BBlocks):
-        for coord, block in b_blocks.items():
+        for coord in b_blocks:
             self.draw_block(coord, self.block_color, self.block_color,
                             tooltip="BUILDING_BLOCK")
 

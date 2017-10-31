@@ -3,10 +3,6 @@ from enum import Enum, auto
 from roboscaffold_sim.direction import Direction
 
 
-class BuildingBlockState:
-    pass
-
-
 class ScaffoldInstruction(Enum):
     NONE = auto()
     STOP = auto()

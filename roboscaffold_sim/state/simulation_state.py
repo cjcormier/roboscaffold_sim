@@ -1,17 +1,16 @@
 import copy
 import traceback
-from typing import Dict, List, NamedTuple, Optional, TypeVar, Tuple
+from typing import Dict, List, NamedTuple, Optional, TypeVar, Tuple, Set
 
 from roboscaffold_sim.coordinate import Coordinate, CoordinateList, CoordinateSet, \
     Right, Down, Up, Left
 from roboscaffold_sim.direction import Direction as Dir
 from roboscaffold_sim.goal_type import GoalType
-from roboscaffold_sim.state.block_states import BuildingBlockState, ScaffoldState, \
-    ScaffoldInstruction
+from roboscaffold_sim.state.scaffolding_state import ScaffoldState, ScaffoldInstruction
 from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
 
 SBlocks = Dict[Coordinate, ScaffoldState]
-BBlocks = Dict[Coordinate, BuildingBlockState]
+BBlocks = Set[Coordinate]
 Robots = Dict[Coordinate, BuilderState]
 
 GType = GoalType
@@ -47,7 +46,7 @@ class SimulationState:
     def __init__(self):
         self.finished: bool = False
         self.s_blocks: SBlocks = dict()
-        self.b_blocks: BBlocks = dict()
+        self.b_blocks: BBlocks = set()
         self.robots: Robots = dict()
 
         self.target_structure: CoordinateList = []
@@ -117,7 +116,7 @@ class SimulationState:
             if not self.finished:
                 self.update_robots()
 
-    def check_for_finished_goals(self, robot: BuilderState):
+    def check_for_finished_goals(self, robot: BuilderState) -> bool:
 
         if len(self.goal_stack) == 0:
             return True
@@ -155,7 +154,7 @@ class SimulationState:
                 self.goal_stack = [new_goal]
         return False
 
-    def determine_new_goals(self, robo_coord, robot: BuilderState) -> bool:
+    def determine_new_goals(self, robo_coord: Coordinate, robot: BuilderState) -> bool:
         """Determines the next goal if needed, returns if the scaffolding should update"""
         if len(self.target_structure) == 0:
             return False
@@ -172,7 +171,8 @@ class SimulationState:
 
         return True
 
-    def get_place_helper_goal(self, robo_coord, robot, next_goal) -> bool:
+    def get_place_helper_goal(self, robo_coord: Coordinate, robot: BuilderState,
+                              next_goal: Goal) -> bool:
         if robot.not_holding_block():
             if self.coord_is_reachable(robo_coord, next_goal.h_coord):
                 goal, recurse = self.get_needed_block_goal(next_goal)
@@ -268,7 +268,7 @@ class SimulationState:
 
         raise ValueError(f'No valid block, last block checked {curr_block}')
 
-    def coord_is_reachable(self, start: Coordinate, goal: Coordinate):
+    def coord_is_reachable(self, start: Coordinate, goal: Coordinate) -> bool:
         work_coord = Coordinate(start.x, start.y)
 
         while work_coord.x != goal.x:
@@ -338,7 +338,7 @@ class SimulationState:
         if block_coord in self.s_blocks and wanted_block is HeldBlock.SCAFFOLD:
             del self.s_blocks[block_coord]
         elif block_coord in self.b_blocks and wanted_block is HeldBlock.BUILD:
-            del self.b_blocks[block_coord]
+            self.b_blocks.remove(block_coord)
         elif block_coord == self.cache:
             pass
         else:
@@ -355,7 +355,7 @@ class SimulationState:
             raise LookupError('Block already present')
 
         if robot.block is HeldBlock.BUILD:
-            self.b_blocks[block_coord] = BuildingBlockState()
+            self.b_blocks.add(block_coord)
         elif robot.block is HeldBlock.SCAFFOLD:
             self.s_blocks[block_coord] = ScaffoldState()
 
@@ -371,7 +371,7 @@ class SimulationState:
         del self.robots[robo_coord]
         self.robots[new_coords] = robot
 
-    def update_scaffolding(self, r_coord, robot):
+    def update_scaffolding(self, r_coord: Coordinate, robot: BuilderState):
         next_goal = self.goal_stack[-1]
         h_coord = next_goal.h_coord
 
@@ -426,8 +426,8 @@ class SimulationStateList:
         self.states: List[SimulationState] = [copy.deepcopy(self._working_state)]
 
     @staticmethod
-    def create_with_goal_structure(goal):
-        initial_state = SimulationState.create_with_target_structure(goal)
+    def create_with_target_structure(target: CoordinateList):
+        initial_state = SimulationState.create_with_target_structure(target)
         return SimulationStateList(initial_state)
 
     @staticmethod
