@@ -324,6 +324,10 @@ class SimulationState:
                 self.drop(coord, robot)
             elif block_instruction is ScaffoldInstruction.DROP_FORWARD:
                 self.drop(coord, robot)
+            elif block_instruction is ScaffoldInstruction.DROP_BEHIND:
+                robot.turn('left')
+                robot.turn('left')
+                self.drop(coord, robot)
 
     def pick(self, robo_coord: Coordinate, robot: BuilderState, goal_type: GType):
         block_coord = robo_coord.get_coord_in_direction(robot.direction)
