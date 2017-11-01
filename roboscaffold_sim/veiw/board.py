@@ -5,7 +5,7 @@ from typing import Tuple, List
 from roboscaffold_sim.coordinate import Coordinate, CoordinateList
 from roboscaffold_sim.direction import Direction
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
-from roboscaffold_sim.state.scaffolding_state import ScaffoldInstruction
+from roboscaffold_sim.state.scaffolding_state import SInstruction
 from roboscaffold_sim.state.builder_state import HeldBlock, BuilderState
 from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots, Goal, Goals
 from roboscaffold_sim.goal_type import GoalType
@@ -39,22 +39,22 @@ class Board(tk.Frame):
         self.background_color = '#888'
 
         self.scaffold_colors = {
-            ScaffoldInstruction.NONE: '#888',
-            ScaffoldInstruction.STOP: '#fff',
+            SInstruction.NONE: '#888',
+            SInstruction.STOP: '#fff',
 
-            ScaffoldInstruction.DRIVE_LEFT: '#800',
-            ScaffoldInstruction.DRIVE_RIGHT: '#080',
-            ScaffoldInstruction.DRIVE_UTURN: '#008',
+            SInstruction.DRIVE_LEFT: '#800',
+            SInstruction.DRIVE_RIGHT: '#080',
+            SInstruction.DRIVE_UTURN: '#008',
 
-            ScaffoldInstruction.PICK_LEFT: '#ff0',
-            ScaffoldInstruction.PICK_RIGHT: '#0ff',
-            ScaffoldInstruction.PICK_FORWARD: '#f0f',
-            ScaffoldInstruction.PICK_BACK: '#088',
+            SInstruction.PICK_LEFT: '#ff0',
+            SInstruction.PICK_RIGHT: '#0ff',
+            SInstruction.PICK_FORWARD: '#f0f',
+            SInstruction.PICK_BACK: '#088',
 
-            ScaffoldInstruction.DROP_LEFT: '#f00',
-            ScaffoldInstruction.DROP_RIGHT: '#0f0',
-            ScaffoldInstruction.DROP_FORWARD: '#00f',
-            ScaffoldInstruction.DROP_BEHIND: '#808'
+            SInstruction.DROP_LEFT: '#f00',
+            SInstruction.DROP_RIGHT: '#0f0',
+            SInstruction.DROP_FORWARD: '#00f',
+            SInstruction.DROP_BEHIND: '#808'
         }
 
         self.goal_colors = {

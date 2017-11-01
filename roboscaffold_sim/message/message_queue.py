@@ -3,5 +3,5 @@ from typing import List
 
 
 class MessageQueue:
-    def __init__(self):
+    def __init__(self) -> None:
         self.message: List(Message) = []

@@ -9,12 +9,12 @@ from roboscaffold_sim.goal_type import GoalType as GType
 from roboscaffold_sim.simulators.basic_strategies.basic_strategy import \
     BasicStrategy
 from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
-from roboscaffold_sim.state.scaffolding_state import ScaffoldInstruction, ScaffoldState
+from roboscaffold_sim.state.scaffolding_state import SInstruction, ScaffoldState
 from roboscaffold_sim.state.simulation_state import SimulationState, Goal
 
 
 class SpineStrat(BasicStrategy):
-    def __init__(self, sim_state: SimulationState):
+    def __init__(self, sim_state: SimulationState) -> None:
         BasicStrategy.__init__(self, sim_state)
 
         self.seed: Coordinate = Coordinate(0, 0)
@@ -194,7 +194,7 @@ class SpineStrat(BasicStrategy):
         h_coord = next_goal.h_coord
 
         for b_coord, block in self.sim_state.s_blocks.items():
-            block.instruction = ScaffoldInstruction.NONE
+            block.instruction = SInstruction.NONE
 
         work_dir, work_y = self.update_start_on_blocks(r_coord, h_coord, robot.direction)
         work_dir = self.update_off_block(h_coord, work_dir, work_y)

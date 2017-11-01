@@ -11,7 +11,7 @@ Coordinates_ = Iterable[Optional[Coord]]
 
 class Coordinate:
 
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, y: int)  -> None:
         self._x: int = x
         self._y: int = y
 

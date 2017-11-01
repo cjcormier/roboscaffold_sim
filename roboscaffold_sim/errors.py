@@ -12,7 +12,7 @@ class TargetError(RoboScaffoldingError):
         message -- explanation of the error
     """
 
-    def __init__(self, target: CoordinateList, message: str):
+    def __init__(self, target: CoordinateList, message: str) -> None:
         self.target = target
         self.message = message
 
@@ -24,7 +24,7 @@ class GoalError(RoboScaffoldingError):
         message -- explanation of the error
     """
 
-    def __init__(self, message: str):
+    def __init__(self, message: str)  -> None:
         self.message = message
 
 
@@ -35,5 +35,5 @@ class RobotActionError(RoboScaffoldingError):
         message -- explanation of the error
     """
 
-    def __init__(self, message: str):
+    def __init__(self, message: str)  -> None:
         self.message = message

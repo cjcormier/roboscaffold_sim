@@ -6,13 +6,13 @@ from roboscaffold_sim.simulators.basic_strategies.basic_strategy import \
     BasicStrategy
 from roboscaffold_sim.simulators.basic_strategies.spine_strat import SpineStrat
 from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
-from roboscaffold_sim.state.scaffolding_state import ScaffoldState, ScaffoldInstruction
+from roboscaffold_sim.state.scaffolding_state import ScaffoldState, SInstruction
 from roboscaffold_sim.state.simulation_state import SimulationState
 
 
 class BasicSimulation:
     def __init__(self, start_state: SimulationState = SimulationState(),
-                 strategy: ClassVar[BasicStrategy] = SpineStrat):
+                 strategy: ClassVar[BasicStrategy] = SpineStrat) -> None:
         self.sim_state = start_state
         self.strategy = strategy(start_state)
 
@@ -20,7 +20,7 @@ class BasicSimulation:
     def create_base_sim(structure: CoordinateList = list()):
         sim_state = SimulationState()
 
-        sim_state.s_blocks[Coordinate(0, 0)] = ScaffoldState(ScaffoldInstruction.STOP)
+        sim_state.s_blocks[Coordinate(0, 0)] = ScaffoldState(SInstruction.STOP)
         sim_state.robots[Coordinate(0, 0)] = BuilderState()
         sim_state.target_structure = structure
 
@@ -78,41 +78,41 @@ class BasicSimulation:
         working_set = dict(self.sim_state.robots)
         for coord, robot in working_set.items():
             block_instruction = self.sim_state.s_blocks[coord].instruction
-            if block_instruction is ScaffoldInstruction.NONE:
+            if block_instruction is SInstruction.NONE:
                 self.move_robot(coord, robot)
-            elif block_instruction is ScaffoldInstruction.STOP:
+            elif block_instruction is SInstruction.STOP:
                 continue
-            elif block_instruction is ScaffoldInstruction.DRIVE_LEFT:
+            elif block_instruction is SInstruction.DRIVE_LEFT:
                 robot.turn('left')
                 self.move_robot(coord, robot)
-            elif block_instruction is ScaffoldInstruction.DRIVE_RIGHT:
+            elif block_instruction is SInstruction.DRIVE_RIGHT:
                 robot.turn('right')
                 self.move_robot(coord, robot)
-            elif block_instruction is ScaffoldInstruction.DRIVE_UTURN:
+            elif block_instruction is SInstruction.DRIVE_UTURN:
                 robot.turn('left')
                 robot.turn('left')
                 self.move_robot(coord, robot)
-            elif block_instruction is ScaffoldInstruction.PICK_LEFT:
+            elif block_instruction is SInstruction.PICK_LEFT:
                 robot.turn('left')
                 self.pick(coord, robot)
-            elif block_instruction is ScaffoldInstruction.PICK_RIGHT:
+            elif block_instruction is SInstruction.PICK_RIGHT:
                 robot.turn('right')
                 self.pick(coord, robot)
-            elif block_instruction is ScaffoldInstruction.PICK_FORWARD:
+            elif block_instruction is SInstruction.PICK_FORWARD:
                 self.pick(coord, robot)
-            elif block_instruction is ScaffoldInstruction.PICK_BACK:
+            elif block_instruction is SInstruction.PICK_BACK:
                 robot.turn('left')
                 robot.turn('left')
                 self.pick(coord, robot)
-            elif block_instruction is ScaffoldInstruction.DROP_LEFT:
+            elif block_instruction is SInstruction.DROP_LEFT:
                 robot.turn('left')
                 self.drop(coord, robot)
-            elif block_instruction is ScaffoldInstruction.DROP_RIGHT:
+            elif block_instruction is SInstruction.DROP_RIGHT:
                 robot.turn('right')
                 self.drop(coord, robot)
-            elif block_instruction is ScaffoldInstruction.DROP_FORWARD:
+            elif block_instruction is SInstruction.DROP_FORWARD:
                 self.drop(coord, robot)
-            elif block_instruction is ScaffoldInstruction.DROP_BEHIND:
+            elif block_instruction is SInstruction.DROP_BEHIND:
                 robot.turn('left')
                 robot.turn('left')
                 self.drop(coord, robot)

@@ -1,6 +1,6 @@
 from roboscaffold_sim.coordinate import Coordinate
 from roboscaffold_sim.direction import Direction
-from roboscaffold_sim.state.scaffolding_state import ScaffoldInstruction, ScaffoldState, \
+from roboscaffold_sim.state.scaffolding_state import SInstruction, ScaffoldState, \
     BuildingBlockState
 from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
 from roboscaffold_sim.state.simulation_state import SimulationState, Goal
@@ -32,7 +32,7 @@ state_controls.max_state = 10
 s_blocks = {}
 b_blocks = {}
 robots = {}
-for instruction in ScaffoldInstruction:
+for instruction in SInstruction:
     s_blocks[get_next_coord()] = ScaffoldState(instruction)
 
 b_blocks[get_next_coord()] = BuildingBlockState()
@@ -43,7 +43,7 @@ for direction in Direction:
         robot.block = held_block
         robot.direction = direction
         coord = get_next_coord()
-        s_blocks[coord] = ScaffoldState(ScaffoldInstruction.DRIVE_RIGHT)
+        s_blocks[coord] = ScaffoldState(SInstruction.DRIVE_RIGHT)
         robots[coord] = robot
 
 sim = SimulationState()

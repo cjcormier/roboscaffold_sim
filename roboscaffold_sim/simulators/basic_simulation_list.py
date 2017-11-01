@@ -7,7 +7,7 @@ from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 
 
 class BasicSimulationList:
-    def __init__(self, initial_state: BasicSimulation = BasicSimulation()):
+    def __init__(self, initial_state: BasicSimulation = BasicSimulation()) -> None:
         self._working_state: BasicSimulation = initial_state
         self.states: List[BasicSimulation] = [copy.deepcopy(self._working_state)]
 

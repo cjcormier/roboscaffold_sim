@@ -31,7 +31,7 @@ Goals = List[Optional[Goal]]
 
 
 class SimulationState:
-    def __init__(self):
+    def __init__(self) -> None:
         self.s_blocks: SBlocks = dict()
         self.b_blocks: BBlocks = set()
         self.robots: Robots = dict()
