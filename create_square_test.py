@@ -1,7 +1,7 @@
 import tkinter as tk
 
 from roboscaffold_sim.coordinate import Coordinate
-from roboscaffold_sim.state.simulation_state import SimulationState
+from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 from roboscaffold_sim.veiw.basic_player import BasicPlayer
 
 i = 0
@@ -46,7 +46,7 @@ target_structure = [
     Coordinate(1, 1),
 
 ]
-sim = SimulationState.create_with_target_structure(target_structure)
+sim = BasicSimulation.create_with_target_structure(target_structure)
 
 root = tk.Tk()
 player = BasicPlayer(root, sim)

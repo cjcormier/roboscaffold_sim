@@ -4,9 +4,10 @@ from typing import Tuple, List
 
 from roboscaffold_sim.coordinate import Coordinate, CoordinateList
 from roboscaffold_sim.direction import Direction
+from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 from roboscaffold_sim.state.scaffolding_state import ScaffoldInstruction
 from roboscaffold_sim.state.builder_state import HeldBlock, BuilderState
-from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots, Goal, Goals, SimulationState
+from roboscaffold_sim.state.simulation_state import SBlocks, BBlocks, Robots, Goal, Goals
 from roboscaffold_sim.goal_type import GoalType
 from roboscaffold_sim.veiw.tooltip import CanvasTooltip
 
@@ -53,7 +54,7 @@ class Board(tk.Frame):
             ScaffoldInstruction.DROP_LEFT: '#f00',
             ScaffoldInstruction.DROP_RIGHT: '#0f0',
             ScaffoldInstruction.DROP_FORWARD: '#00f',
-            ScaffoldInstruction.DROP_BEDHIND: '#808'
+            ScaffoldInstruction.DROP_BEHIND: '#808'
         }
 
         self.goal_colors = {
@@ -127,15 +128,15 @@ class Board(tk.Frame):
             vert_offsets = [edge_size, 0, edge_size, edge_size, 0, half_edge_size]
         return tuple(map(add, [x-half_edge_size, y-half_edge_size] * 3, vert_offsets))
 
-    def draw_sim(self, sim: SimulationState):
+    def draw_sim(self, sim: BasicSimulation):
         self.canvas.delete('drawn')
         for tooltip in self.tooltips:
             tooltip.hide()
-        self.draw_s_blocks(sim.s_blocks)
-        self.draw_b_blocks(sim.b_blocks)
-        self.draw_robots(sim.robots)
-        self.draw_target_structure(sim.target_structure)
-        self.draw_goals(sim.goal_stack)
+        self.draw_s_blocks(sim.sim_state.s_blocks)
+        self.draw_b_blocks(sim.sim_state.b_blocks)
+        self.draw_robots(sim.sim_state.robots)
+        self.draw_target_structure(sim.sim_state.target_structure)
+        self.draw_goals(sim.strategy.goal_stack)
 
     def draw_s_blocks(self, s_blocks: SBlocks):
         for coord, block in s_blocks.items():

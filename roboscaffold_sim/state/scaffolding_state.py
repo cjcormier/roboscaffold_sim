@@ -74,3 +74,6 @@ class ScaffoldState:
         elif count == 3:
             self.instruction = ScaffoldInstruction.DROP_RIGHT
         return desired_dir
+
+    def __repr__(self):
+        return self.instruction.name

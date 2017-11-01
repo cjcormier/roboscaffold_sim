@@ -1,6 +1,7 @@
 import tkinter as tk
 
-from roboscaffold_sim.state.simulation_state import SimulationState, SimulationStateList
+from roboscaffold_sim.state.SimulationListState import SimulationStateList
+from roboscaffold_sim.state.simulation_state import SimulationState
 from roboscaffold_sim.veiw.board import Board
 from roboscaffold_sim.veiw.state_controls import StateControls
 
