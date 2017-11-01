@@ -1,5 +1,3 @@
-import copy
-import traceback
 from typing import Dict, List, NamedTuple, Optional, Set
 
 from roboscaffold_sim.coordinate import Coordinate, CoordinateList

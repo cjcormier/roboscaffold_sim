@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from roboscaffold_sim.state.SimulationListState import SimulationStateList
+from roboscaffold_sim.state.basic_simulation_list import BasicSimulationList
 from roboscaffold_sim.state.simulation_state import SimulationState
 from roboscaffold_sim.veiw.board import Board
 from roboscaffold_sim.veiw.state_controls import StateControls
@@ -12,7 +12,7 @@ class BasicPlayer(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
 
-        self.states = SimulationStateList(starting_state)
+        self.states = BasicSimulationList(starting_state)
         self.states.update_loop(load_to-1)
 
         self.board = Board(parent)

@@ -6,7 +6,7 @@ from roboscaffold_sim.coordinate import CoordinateList
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 
 
-class SimulationStateList:
+class BasicSimulationList:
     def __init__(self, initial_state: BasicSimulation = BasicSimulation()):
         self._working_state: BasicSimulation = initial_state
         self.states: List[BasicSimulation] = [copy.deepcopy(self._working_state)]
@@ -14,12 +14,12 @@ class SimulationStateList:
     @staticmethod
     def create_with_target_structure(target: CoordinateList):
         initial_state = BasicSimulation.create_with_target_structure(target)
-        return SimulationStateList(initial_state)
+        return BasicSimulationList(initial_state)
 
     @staticmethod
     def create_with_empty_states(num_states: int = 1):
         initial_state = BasicSimulation()
-        states = SimulationStateList(initial_state)
+        states = BasicSimulationList(initial_state)
         for _ in range(num_states - 1):
             states.states.append(copy.deepcopy(initial_state))
 
