@@ -12,7 +12,7 @@ class BasicSimulationList:
         self.states: List[BasicSimulation] = [copy.deepcopy(self._working_state)]
         self._b_blocks = 0
         self._s_blocks = 0
-        self._last_analyzed = 0
+        self._last_check = 0
 
     @staticmethod
     def create_with_target_structure(target: CoordinateList):
@@ -46,22 +46,23 @@ class BasicSimulationList:
                     break
 
         self.analyze()
-        print(f'Analyzed the {self._last_analyzed} loaded states, currently '
+        print(f'Analyzed the {self._last_check} loaded states, currently '
               f'{self._s_blocks} scaffolding has been used and {self._b_blocks} '
               f'building blocks have beend used.')
 
     def analyze(self) -> Tuple[int, int, int]:
         if not self.states:
             raise Exception("No simulation in SimulationList")
-        if len(self.states) > self._last_analyzed:
-            s_blocks = max(len(x.sim_state.s_blocks) for x in self.states[self._last_analyzed:])
-            b_blocks = max(len(x.sim_state.b_blocks) for x in self.states[self._last_analyzed:])
+        last_check = self._last_check
+        if len(self.states) > self._last_check:
+            s_blocks = max(len(x.sim_state.s_blocks) for x in self.states[last_check:])
+            b_blocks = max(len(x.sim_state.b_blocks) for x in self.states[last_check:])
             self._s_blocks = max(s_blocks, self._s_blocks)
             self._b_blocks = max(b_blocks, self._b_blocks)
 
             time = len(self.states)
-            self._last_analyzed = time
+            self._last_check = time
 
-        return self._s_blocks, self._b_blocks, self._last_analyzed
+        return self._s_blocks, self._b_blocks, self._last_check
 
 
