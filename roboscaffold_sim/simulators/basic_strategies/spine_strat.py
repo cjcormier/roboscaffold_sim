@@ -30,7 +30,8 @@ class SpineStrat(BasicStrategy):
         return other.x > reach.x or (other.x == reach.x and other.y > reach.y)
 
     @staticmethod
-    def configure_target(target: CoordinateList, allow_offset: bool=True) -> CoordinateList:
+    def configure_target(target: CoordinateList, allow_offset: bool=True) \
+            -> CoordinateList:
         target.sort(key=lambda coord: (coord.x, -coord.y))
         if allow_offset:
             min_x = min(coord.x for coord in target)
@@ -56,8 +57,9 @@ class SpineStrat(BasicStrategy):
         g_coord = self.goal_stack[-1].coord
         g_type = self.goal_stack[-1].type
         held_block = robot.block
-        place_s_done = g_type == GType.PLACE_SCAFFOLD and g_coord in self.sim_state.s_blocks
-        place_b_done = g_type == GType.PLACE_BUILD_BLOCK and g_coord in self.sim_state.b_blocks
+        sim_state = self.sim_state
+        place_s_done = g_type == GType.PLACE_SCAFFOLD and g_coord in sim_state.s_blocks
+        place_b_done = g_type == GType.PLACE_BUILD_BLOCK and g_coord in sim_state.b_blocks
         pick_s_done = g_type == GType.PICK_SCAFFOLD and held_block is HeldBlock.SCAFFOLD
         pick_b_done = g_type == GType.PICK_BUILD_BLOCK and held_block is HeldBlock.BUILD
 
@@ -157,8 +159,9 @@ class SpineStrat(BasicStrategy):
     def get_next_needed_block(self, goal: Coordinate) -> Coordinate:
         # first move horizontally, then vertically
         curr_block = copy.copy(self.seed)
+        sim_state = self.sim_state
         while curr_block != goal:
-            if curr_block not in self.sim_state.b_blocks and curr_block not in self.sim_state.s_blocks:
+            if not (curr_block in sim_state.b_blocks or curr_block in sim_state.s_blocks):
                 return curr_block
             if curr_block.x < goal.x+1:
                 curr_block += Right
@@ -214,8 +217,8 @@ class SpineStrat(BasicStrategy):
     def update_start_on_blocks(self, robo_coord: Coordinate,
                                h_coord: Coordinate, work_dir: Dir) -> (Dir, int):
 
-        start_block: ScaffoldState = self.sim_state.s_blocks[robo_coord]
-        on_spine_block: ScaffoldState = self.sim_state.s_blocks[Coordinate(robo_coord.x, 0)]
+        start_block = self.sim_state.s_blocks[robo_coord]
+        on_spine_block = self.sim_state.s_blocks[Coordinate(robo_coord.x, 0)]
 
         if robo_coord.x != h_coord.x:
             if robo_coord.y != 0:

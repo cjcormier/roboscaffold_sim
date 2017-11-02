@@ -31,5 +31,6 @@ class BasicStrategy:
 
     @staticmethod
     @abc.abstractmethod
-    def configure_target(target: CoordinateList, allow_offset: bool=True) -> CoordinateList:
+    def configure_target(target: CoordinateList, allow_offset: bool=True) \
+            -> CoordinateList:
         pass

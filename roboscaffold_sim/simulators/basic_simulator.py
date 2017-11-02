@@ -17,12 +17,12 @@ class BasicSimulation:
         self.strategy = strategy(start_state)
 
     @staticmethod
-    def create_base_sim(strat: ClassVar[BasicStrategy], structure: CoordinateList = list()):
+    def create_base_sim(strat: ClassVar[BasicStrategy], target: CoordinateList = list()):
         sim_state = SimulationState()
 
         sim_state.s_blocks[Coordinate(0, 0)] = ScaffoldState(SInstruction.STOP)
         sim_state.robots[Coordinate(0, 0)] = BuilderState()
-        sim_state.target_structure = structure
+        sim_state.target_structure = target
 
         sim = BasicSimulation(sim_state, strat)
         sim.strategy.cache = Down
@@ -31,11 +31,10 @@ class BasicSimulation:
     @staticmethod
     def create_with_target_structure(target: CoordinateList,
                                      strat: ClassVar[BasicStrategy]=SpineStrat):
-        if BasicSimulation.validate_target_structure(target):
-            target = strat.configure_target(target)
-            return BasicSimulation.create_base_sim(strat, target)
-        else:
+        if not BasicSimulation.validate_target_structure(target):
             raise TargetError(target, 'Given target is not a valid structure')
+        target = strat.configure_target(target)
+        return BasicSimulation.create_base_sim(strat, target)
 
     @staticmethod
     def validate_target_structure(target: CoordinateList) -> bool:
@@ -122,7 +121,8 @@ class BasicSimulation:
         if robot.block is HeldBlock.NONE:
             raise RobotActionError('Cannot drop NONE Block')
 
-        if block_coord in self.sim_state.b_blocks or block_coord in self.sim_state.s_blocks:
+        sim_state = self.sim_state
+        if block_coord in sim_state.b_blocks or block_coord in sim_state.s_blocks:
             raise RobotActionError('Block already present')
 
         if robot.block is HeldBlock.BUILD:
