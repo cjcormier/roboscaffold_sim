@@ -100,3 +100,5 @@ square = [
     Coordinate(1, 1),
 
 ]
+
+structures = {'column': column, 'house': house, 'lip': lip, 'square': square}
