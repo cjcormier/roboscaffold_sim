@@ -1,5 +1,6 @@
 import tkinter as tk
 
+from roboscaffold_sim.Structures.basic_structures import column
 from roboscaffold_sim.coordinate import Coordinate
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 from roboscaffold_sim.veiw.basic_player import BasicPlayer
@@ -14,14 +15,7 @@ def get_next_coord() -> Coordinate:
     return next_coord
 
 
-target_structure = [
-    Coordinate(5, 5),
-    Coordinate(5, 4),
-    Coordinate(5, 3),
-    Coordinate(5, 2),
-    Coordinate(5, 1),
-]
-sim = BasicSimulation.create_with_target_structure(target_structure)
+sim = BasicSimulation.create_with_target_structure(column)
 
 root = tk.Tk()
 player = BasicPlayer(root, sim)

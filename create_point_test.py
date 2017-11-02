@@ -14,8 +14,7 @@ def get_next_coord() -> Coordinate:
     return next_coord
 
 
-target_structure = [Coordinate(5, 5)]
-sim = BasicSimulation.create_with_target_structure(target_structure)
+sim = BasicSimulation.create_with_target_structure([Coordinate(5, 5)])
 
 root = tk.Tk()
 player = BasicPlayer(root, sim, load_to=100)
