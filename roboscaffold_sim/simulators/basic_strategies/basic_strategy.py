@@ -12,6 +12,7 @@ class BasicStrategy:
     def __init__(self, sim_state: SimulationState):
         self.sim_state = sim_state
         self.finished: bool = False
+        self.min_y = 0
 
     @abc.abstractmethod
     def update(self, robo_coord, robot) -> bool:

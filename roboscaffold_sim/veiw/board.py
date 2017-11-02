@@ -77,6 +77,7 @@ class Board(tk.Frame):
         self.canvas.configure(background=self.background_color)
         self.canvas.grid()
         self.tooltips = []
+        self.vert_offset = 0
 
     def draw_grid(self):
         previous_grid = self.canvas.find_withtag('grid')
@@ -109,7 +110,7 @@ class Board(tk.Frame):
         grid_offset = (self.line_width+1)//2
 
         x = grid_offset + block_offset + self.grid_size * coord.x
-        y = grid_offset + block_offset + self.grid_size * coord.y
+        y = grid_offset + block_offset + self.grid_size * (coord.y - self.vert_offset)
         return x, y
 
     @staticmethod
@@ -130,6 +131,7 @@ class Board(tk.Frame):
 
     def draw_sim(self, sim: BasicSimulation):
         self.canvas.delete('drawn')
+        self.vert_offset = sim.strategy.min_y
         for tooltip in self.tooltips:
             tooltip.hide()
         self.draw_s_blocks(sim.sim_state.s_blocks)
