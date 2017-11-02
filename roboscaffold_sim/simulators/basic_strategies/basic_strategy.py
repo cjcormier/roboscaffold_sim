@@ -1,6 +1,6 @@
 from typing import Optional
 
-from roboscaffold_sim.coordinate import Coordinate
+from roboscaffold_sim.coordinate import Coordinate, CoordinateList
 from roboscaffold_sim.state.builder_state import BuilderState
 from roboscaffold_sim.state.simulation_state import SimulationState
 import abc
@@ -27,4 +27,9 @@ class BasicStrategy:
 
     @abc.abstractmethod
     def get_next_unfinished_block(self) -> Optional[Coordinate]:
+        pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def configure_target(target: CoordinateList, allow_offset: bool=True) -> CoordinateList:
         pass

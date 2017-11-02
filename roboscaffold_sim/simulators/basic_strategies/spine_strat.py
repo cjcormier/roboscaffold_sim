@@ -2,7 +2,7 @@ from typing import Optional, Tuple
 
 import copy
 
-from roboscaffold_sim.coordinate import Coordinate, Right, Up, Left, Down
+from roboscaffold_sim.coordinate import Coordinate, Right, Up, Left, Down, CoordinateList
 from roboscaffold_sim.direction import Direction as Dir
 from roboscaffold_sim.errors import GoalError
 from roboscaffold_sim.goal_type import GoalType as GType
@@ -28,6 +28,17 @@ class SpineStrat(BasicStrategy):
     @staticmethod
     def reach_compare(reach: Coordinate, other: Coordinate) -> bool:
         return other.x > reach.x or (other.x == reach.x and other.y > reach.y)
+
+    @staticmethod
+    def configure_target(target: CoordinateList, allow_offset: bool=True) -> CoordinateList:
+        target.sort(key=lambda coord: (coord.x, -coord.y))
+        if allow_offset:
+            min_x = min(coord.x for coord in target)
+            min_y = min(coord.x for coord in target)
+            offset = Coordinate(1-min_x, 1-min_y)
+
+            target = [coord + offset for coord in target]
+        return target
 
     def update(self, robo_coord, robot) -> bool:
         goal_finished = self.check_for_finished_goals(robot)

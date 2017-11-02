@@ -17,22 +17,23 @@ class BasicSimulation:
         self.strategy = strategy(start_state)
 
     @staticmethod
-    def create_base_sim(structure: CoordinateList = list()):
+    def create_base_sim(strat: ClassVar[BasicStrategy], structure: CoordinateList = list()):
         sim_state = SimulationState()
 
         sim_state.s_blocks[Coordinate(0, 0)] = ScaffoldState(SInstruction.STOP)
         sim_state.robots[Coordinate(0, 0)] = BuilderState()
         sim_state.target_structure = structure
 
-        sim = BasicSimulation(sim_state)
+        sim = BasicSimulation(sim_state, strat)
         sim.strategy.cache = Down
         return sim
 
     @staticmethod
-    def create_with_target_structure(target: CoordinateList):
+    def create_with_target_structure(target: CoordinateList,
+                                     strat: ClassVar[BasicStrategy]=SpineStrat):
         if BasicSimulation.validate_target_structure(target):
-            target.sort(key=lambda coord: (coord.x, -coord.y))
-            return BasicSimulation.create_base_sim(target)
+            target = strat.configure_target(target)
+            return BasicSimulation.create_base_sim(strat, target)
         else:
             raise TargetError(target, 'Given target is not a valid structure')
 
@@ -47,20 +48,7 @@ class BasicSimulation:
             working_set = neighbors.intersection(remaining_set)
             remaining_set = remaining_set.difference(working_set)
 
-        return len(remaining_set) == 0
-
-    @staticmethod
-    def offset_target_structure(target: CoordinateList) -> CoordinateList:
-        min_x = min(coord.x for coord in target)
-        min_y = min(coord.x for coord in target)
-
-        new_target: CoordinateList = []
-        for coord in target:
-            new_x = coord.x - min_x - 1
-            new_y = coord.y - min_y - 1
-            new_target.append(Coordinate(new_x, new_y))
-
-        return new_target
+        return not remaining_set
 
     def update(self):
         robo_coord, robot = self.get_single_robot()
