@@ -1,34 +1,25 @@
-from typing import Tuple
-
 from roboscaffold_sim.coordinate import CoordinateList, Coordinate
 from roboscaffold_sim.direction import Direction
-from roboscaffold_sim.simulators.basic_strategies.spine_strat import SpineStrat
-from roboscaffold_sim.state.scaffolding_state import ScaffoldState
+from roboscaffold_sim.simulators.basic_strategies.offset_spine import OffsetSpineStrat
 from roboscaffold_sim.state.simulation_state import SimulationState
 
 
 Dir = Direction
 
 
-class OffsetSpineStrat(SpineStrat):
+class CentroidOffsetSpineStrat(OffsetSpineStrat):
     def __init__(self, sim_state: SimulationState) -> None:
-        SpineStrat.__init__(self, sim_state)
+        OffsetSpineStrat.__init__(self, sim_state)
         self.min_y = min(coord.y for coord in sim_state.target_structure)
-
-    @staticmethod
-    def target_sort_key_tuple(coord) -> Tuple[int, int, int, int]:
-        on_spine = coord.y == 0
-        first_term = -coord.x if on_spine else 0
-        return on_spine, first_term, coord.x, -coord.y
 
     @staticmethod
     def configure_target(target: CoordinateList, allow_offset: bool = True) \
             -> CoordinateList:
         if allow_offset:
             min_x = min(coord.x for coord in target)
-            min_y = min(coord.y for coord in target)
-            max_y = max(coord.y for coord in target)
-            offset = Coordinate(1 - min_x, -(max_y - min_y+1)//2)
+            centroid_y = sum(coord.y for coord in target) / len(target)
+            centroid_y = int(centroid_y+0.5)
+            offset = Coordinate(1 - min_x, -centroid_y)
 
             target = [coord + offset for coord in target]
 

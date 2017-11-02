@@ -2,6 +2,8 @@ import tkinter as tk
 
 from roboscaffold_sim.Structures.basic_structures import structures
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
+from roboscaffold_sim.simulators.basic_strategies.centroid_offset_spine import \
+    CentroidOffsetSpineStrat
 from roboscaffold_sim.simulators.basic_strategies.offset_spine import OffsetSpineStrat
 from roboscaffold_sim.simulators.basic_strategies.spine_strat import SpineStrat
 from roboscaffold_sim.veiw.basic_player import BasicPlayer
@@ -19,7 +21,8 @@ def use_basic_structure(args, strat):
 
 parser = argparse.ArgumentParser(description='Basic simulation player.')
 
-parser.add_argument('strategy', type=str, choices=['spine', 'offset_spine'], nargs='?',
+parser.add_argument('strategy', type=str,
+                    choices=['spine', 'offset_spine', 'centroid_spine'], nargs='?',
                     default='spine', help='The strategy to use.')
 
 creation_parser = parser.add_subparsers(help='How to create the target structure')
@@ -42,7 +45,9 @@ if __name__ == '__main__':
     print(args)
     if args.strategy == 'spine':
         strat = SpineStrat
-    else:
+    elif args.strategy == 'offset_spine':
         strat = OffsetSpineStrat
+    else:
+        strat = CentroidOffsetSpineStrat
 
     args.create(args, strat)

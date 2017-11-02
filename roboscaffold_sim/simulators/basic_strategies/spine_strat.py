@@ -257,8 +257,9 @@ class SpineStrat(BasicStrategy):
     def update_off_block(self, h_coord: Coordinate, work_dir: Dir, work_y: int) -> Dir:
 
         off_spine_block: ScaffoldState = self.sim_state.s_blocks[Coordinate(h_coord.x, 0)]
-        if work_y < h_coord.y != 0:
-            work_dir = off_spine_block.set_drive_instr(work_dir, Dir.SOUTH)
+        if work_y != h_coord.y != 0:
+            dir = Dir.SOUTH if h_coord.y > 0 else Dir.NORTH
+            work_dir = off_spine_block.set_drive_instr(work_dir, dir)
         return work_dir
 
     def update_goal_block(self, next_goal: Goal, h_coord: Coordinate, work_dir: Dir):
