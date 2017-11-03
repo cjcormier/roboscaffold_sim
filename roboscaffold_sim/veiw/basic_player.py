@@ -31,9 +31,10 @@ class BasicPlayer(tk.Frame):
 
         self.board.draw_sim(self.states.states[0])
         self.state_controls.max_state = len(self.states.states)
-        self.state_controls.finished = self.states.states[-1].finished
+        self.state_controls.finished = self.states.states[-1].finished()
         stats = self.states.analyze()
         self.stats.update_text(stats[0], stats[2])
+        self.winfo_toplevel().title("Robotic Scafolding Application")
 
     def get_updater(self):
         def fun(frame):
@@ -43,7 +44,7 @@ class BasicPlayer(tk.Frame):
     def get_loader(self):
         def fun(to_load):
             self.states.update_loop(to_load)
-            self.state_controls.finished = self.states.states[-1].finished
+            self.state_controls.finished = self.states.states[-1].finished()
             self.state_controls.max_state = len(self.states.states)
             stats = self.states.analyze()
             self.stats.update_text(stats[0], stats[2])
