@@ -11,28 +11,14 @@ Coordinates_ = Iterable[Optional[Coord]]
 
 class Coordinate:
 
-    def __init__(self, x: int, y: int)  -> None:
-        self._x: int = x
-        self._y: int = y
-
-    @property
-    def x(self) -> int:
-        return self._x
-
-    @property
-    def y(self) -> int:
-        return self._y
+    def __init__(self, x: int, y: int) -> None:
+        self.x: int = x
+        self.y: int = y
 
     def get_neighbors(self) -> CoordinateList_:
         return [self+Up, self+Right, self+Down, self+Left]
 
     def get_coord_in_direction(self, direction):
-        coord_change = {
-            Direction.NORTH: Up,
-            Direction.EAST: Right,
-            Direction.SOUTH: Down,
-            Direction.WEST: Left
-        }
         return self + coord_change[direction]
 
     def __eq__(self, other):
@@ -76,3 +62,10 @@ Up = Coordinate(0, -1)
 Right = Coordinate(1, 0)
 Down = Coordinate(0, 1)
 Left = Coordinate(-1, 0)
+
+coord_change = {
+    Direction.NORTH: Up,
+    Direction.EAST: Right,
+    Direction.SOUTH: Down,
+    Direction.WEST: Left
+}

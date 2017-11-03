@@ -65,44 +65,13 @@ class BasicSimulation:
         working_set = dict(self.sim_state.robots)
         for coord, robot in working_set.items():
             block_instruction = self.sim_state.s_blocks[coord].instruction
-            if block_instruction is SInstruction.NONE:
+            robot.left_turns(block_instruction.get_left_turns())
+            if block_instruction.is_drive():
                 self.move_robot(coord, robot)
-            elif block_instruction is SInstruction.STOP:
-                continue
-            elif block_instruction is SInstruction.DRIVE_LEFT:
-                robot.turn('left')
-                self.move_robot(coord, robot)
-            elif block_instruction is SInstruction.DRIVE_RIGHT:
-                robot.turn('right')
-                self.move_robot(coord, robot)
-            elif block_instruction is SInstruction.DRIVE_UTURN:
-                robot.turn('left')
-                robot.turn('left')
-                self.move_robot(coord, robot)
-            elif block_instruction is SInstruction.PICK_LEFT:
-                robot.turn('left')
-                self.pick(coord, robot)
-            elif block_instruction is SInstruction.PICK_RIGHT:
-                robot.turn('right')
-                self.pick(coord, robot)
-            elif block_instruction is SInstruction.PICK_FORWARD:
-                self.pick(coord, robot)
-            elif block_instruction is SInstruction.PICK_BACK:
-                robot.turn('left')
-                robot.turn('left')
-                self.pick(coord, robot)
-            elif block_instruction is SInstruction.DROP_LEFT:
-                robot.turn('left')
+            elif block_instruction.is_drop():
                 self.drop(coord, robot)
-            elif block_instruction is SInstruction.DROP_RIGHT:
-                robot.turn('right')
-                self.drop(coord, robot)
-            elif block_instruction is SInstruction.DROP_FORWARD:
-                self.drop(coord, robot)
-            elif block_instruction is SInstruction.DROP_BEHIND:
-                robot.turn('left')
-                robot.turn('left')
-                self.drop(coord, robot)
+            elif block_instruction.is_pick():
+                self.pick(coord, robot)
 
     def pick(self, robo_coord: Coordinate, robot: BuilderState):
         block_coord = robo_coord.get_coord_in_direction(robot.direction)
@@ -134,8 +103,6 @@ class BasicSimulation:
 
     def move_robot(self, robo_coord: Coordinate, robot: BuilderState):
         new_coords = robo_coord.get_coord_in_direction(robot.direction)
-        if new_coords in self.sim_state.robots:
-            raise RobotActionError('Robot in moving position')
         if new_coords not in self.sim_state.s_blocks:
             raise RobotActionError('Robot is moving onto a space without scaffolding')
 

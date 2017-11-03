@@ -44,7 +44,7 @@ class Board(tk.Frame):
 
             SInstruction.DRIVE_LEFT: '#800',
             SInstruction.DRIVE_RIGHT: '#080',
-            SInstruction.DRIVE_UTURN: '#008',
+            SInstruction.DRIVE_BACK: '#008',
 
             SInstruction.PICK_LEFT: '#ff0',
             SInstruction.PICK_RIGHT: '#0ff',
@@ -54,7 +54,7 @@ class Board(tk.Frame):
             SInstruction.DROP_LEFT: '#f00',
             SInstruction.DROP_RIGHT: '#0f0',
             SInstruction.DROP_FORWARD: '#00f',
-            SInstruction.DROP_BEHIND: '#808'
+            SInstruction.DROP_BACK: '#808'
         }
 
         self.goal_colors = {

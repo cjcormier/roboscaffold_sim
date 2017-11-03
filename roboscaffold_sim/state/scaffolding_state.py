@@ -9,7 +9,7 @@ class SInstruction(Enum):
 
     DRIVE_LEFT = auto()
     DRIVE_RIGHT = auto()
-    DRIVE_UTURN = auto()
+    DRIVE_BACK = auto()
 
     PICK_LEFT = auto()
     PICK_RIGHT = auto()
@@ -19,7 +19,32 @@ class SInstruction(Enum):
     DROP_LEFT = auto()
     DROP_RIGHT = auto()
     DROP_FORWARD = auto()
-    DROP_BEHIND = auto()
+    DROP_BACK = auto()
+
+    # TODO: Change from chained if to dict
+    def get_left_turns(self) -> int:
+        if self in [SInstruction.NONE, SInstruction.PICK_FORWARD, SInstruction.DROP_FORWARD,SInstruction.STOP]:
+            return 0
+        elif self in [SInstruction.DRIVE_LEFT, SInstruction.PICK_LEFT, SInstruction.DROP_LEFT]:
+            return 1
+        elif self in [SInstruction.DRIVE_BACK, SInstruction.PICK_BACK, SInstruction.DROP_BACK]:
+            return 2
+        elif self in [SInstruction.DRIVE_RIGHT, SInstruction.PICK_RIGHT, SInstruction.DROP_RIGHT]:
+            return 3
+
+    def is_drive(self):
+        return self in [SInstruction.DRIVE_LEFT, SInstruction.DRIVE_RIGHT,
+                        SInstruction.DRIVE_BACK, SInstruction.NONE]
+
+    def is_pick(self):
+        return self in [SInstruction.PICK_LEFT, SInstruction.PICK_RIGHT,
+                        SInstruction.PICK_FORWARD, SInstruction.PICK_BACK]
+
+    def is_drop(self):
+        return self in [SInstruction.DROP_LEFT, SInstruction.DROP_RIGHT,
+                        SInstruction.DROP_FORWARD, SInstruction.DROP_BACK]
+
+
 
 
 class ScaffoldState:
@@ -38,7 +63,7 @@ class ScaffoldState:
         elif count == 1:
             self.instruction = SInstruction.DRIVE_LEFT
         elif count == 2:
-            self.instruction = SInstruction.DRIVE_UTURN
+            self.instruction = SInstruction.DRIVE_BACK
         elif count == 3:
             self.instruction = SInstruction.DRIVE_RIGHT
         return desired_dir
@@ -72,7 +97,7 @@ class ScaffoldState:
         elif count == 1:
             self.instruction = SInstruction.DROP_LEFT
         elif count == 2:
-            self.instruction = SInstruction.DROP_BEHIND
+            self.instruction = SInstruction.DROP_BACK
         elif count == 3:
             self.instruction = SInstruction.DROP_RIGHT
         return desired_dir
