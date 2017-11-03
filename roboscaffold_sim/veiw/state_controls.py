@@ -79,7 +79,7 @@ class StateControls(tk.Frame):
 
         self.load_textbox = tk.Text(self.row_frames[3], width=6, height=1)
         self.load_textbox.grid(row=0, column=1, sticky='we')
-        self.load_textbox.insert('1.0', 100)
+        self.load_textbox.insert('1.0', 1000)
         self.load_textbox_color = self.rate_textbox.cget('background')
 
         self.pause()
@@ -157,11 +157,11 @@ class StateControls(tk.Frame):
                 load = int(text)
                 if not 1 <= load <= 1000:
                     self.load_textbox.delete('1.0', 'end')
-                    self.load_textbox.insert('1.0', 100)
+                    self.load_textbox.insert('1.0', 1000)
                     load = 1
             except ValueError:
                 self.load_textbox.delete('1.0', 'end')
-                self.load_textbox.insert('1.0', 100)
+                self.load_textbox.insert('1.0', 1000)
                 load = 1
         print(f'Load: {load}')
         self.loader(load)
