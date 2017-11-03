@@ -71,6 +71,8 @@ class ScaffoldState:
             self.instruction = SInstruction.DROP_FORWARD
         elif count == 1:
             self.instruction = SInstruction.DROP_LEFT
+        elif count == 2:
+            self.instruction = SInstruction.DROP_BEHIND
         elif count == 3:
             self.instruction = SInstruction.DROP_RIGHT
         return desired_dir
