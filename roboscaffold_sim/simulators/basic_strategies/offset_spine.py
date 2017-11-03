@@ -16,10 +16,11 @@ class OffsetSpineStrat(SpineStrat):
         self.min_y = min(coord.y for coord in sim_state.target_structure)
 
     @staticmethod
-    def target_sort_key_tuple(coord) -> Tuple[int, int, int, int]:
+    def target_sort_key_tuple(coord) -> Tuple[int, ...]:
         on_spine = coord.y == 0
-        first_term = -coord.x if on_spine else 0
-        return on_spine, first_term, coord.x, -coord.y
+        spine_sort = -coord.x if on_spine else 0
+        reach_sign = 1 if coord.y > 0 else -1
+        return on_spine, spine_sort, coord.x, reach_sign, -abs(coord.y)
 
     @staticmethod
     def configure_target(target: CoordinateList, allow_offset: bool = True) \
