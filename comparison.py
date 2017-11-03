@@ -11,7 +11,7 @@ from roboscaffold_sim.simulators.basic_strategies.spine_strat import SpineStrat
 
 def max_structs(dimension):
     inner_dim = dimension - 1
-    outer_size = 2**(dimension**2+1)
+    outer_size = 2**(dimension**2)
     inner_size = 2**(inner_dim**2)
 
     max_s= outer_size - inner_size
@@ -28,33 +28,36 @@ def create_struct(dimension, n):
 def add_inner_struct(dimension, n, struct):
     for y in range(dimension):
         for x in range(dimension):
-            if n % 2 != 0:
-                struct.append(Coordinate(x, 0))
-                n -= 1
-            n /= 2
+            if n % 2:
+                struct.append(Coordinate(x, y))
+            n //= 2
             if n == 0:
                 return
+            elif n < 0:
+                raise Exception('n should always be positive')
     raise Exception('n should be 0 and function should have returned by now')
 
 
 def add_outer_struct(dimension, n, struct):
     for x in range(dimension-1):
-        if n % 2 != 0:
-            struct.append(Coordinate(x, 0))
-            n -= 1
-        n /= 2
+        if n % 2:
+            struct.append(Coordinate(x+1, 0))
+        n //= 2
         if n == 0:
             break
+        elif n < 0:
+            raise Exception('n should always be positive')
     for y in range(dimension-1):
-        if n % 2 != 0:
-            struct.append(Coordinate(0, y))
-            n -= 1
-        n /= 2
+        if n % 2:
+            struct.append(Coordinate(0, y+1))
+        n //= 2
         if n == 0:
             break
-    if n > 1:
+        elif n < 0:
+            raise Exception('n should always be positive')
+    if n not in [0, 1]:
         raise Exception('n should be 0 or 1')
-    elif n == 1:
+    elif n:
         struct.append(Coordinate(0, 0))
 
 
@@ -66,7 +69,7 @@ if __name__ == '__main__':
 
     exceptions = 0
     j = 0
-    with open('grid_result', 'w') as file:
+    with open(f'{dimension}_grid_result.csv', 'w') as file:
         file.write('index,spine scaffolding,spine time,offset scaffolding,offset time,'
                    'centroid scaffolding,centroid time\n')
         while j < max_s:
@@ -86,5 +89,4 @@ if __name__ == '__main__':
             if j % 10000 == 0:
                 print(f'{(j/max_s):.2%} {j-exceptions}/{j} {time.time()-start_time:.0f}s')
     end_time = time.time()
-
-    print(f'{end_time-start_time}')
+    print(f'{end_time-start_time:.0f}s')
