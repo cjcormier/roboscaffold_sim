@@ -14,6 +14,8 @@ from roboscaffold_sim.veiw.tooltip import CanvasTooltip
 Color = str
 
 
+# TODO: use Diffs
+# TODO: Break up into squares
 class Board(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
