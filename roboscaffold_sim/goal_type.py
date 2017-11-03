@@ -1,7 +1,7 @@
 from enum import Enum, auto
 
 
-# TODO: Decide if these should be different classes
+# TODO: Decide if these should be different classes, use tupes/namedtupes as data
 class GoalType(Enum):
     PLACE_BUILD_BLOCK = auto()
     PLACE_SCAFFOLD = auto()

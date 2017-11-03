@@ -8,7 +8,7 @@ CoordinateList_ = List[Coord]
 CoordinateSet_ = Set[Coord]
 Coordinates_ = Iterable[Optional[Coord]]
 
-
+# TODO: Change this to a namedtuple?
 class Coordinate:
 
     def __init__(self, x: int, y: int) -> None:

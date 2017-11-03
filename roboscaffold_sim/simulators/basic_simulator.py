@@ -62,16 +62,15 @@ class BasicSimulation:
             return coord, robot
 
     def update_robots(self):
-        working_set = dict(self.sim_state.robots)
-        for coord, robot in working_set.items():
-            block_instruction = self.sim_state.s_blocks[coord].instruction
-            robot.left_turns(block_instruction.get_left_turns())
-            if block_instruction.is_drive():
-                self.move_robot(coord, robot)
-            elif block_instruction.is_drop():
-                self.drop(coord, robot)
-            elif block_instruction.is_pick():
-                self.pick(coord, robot)
+        coord, robot = self.get_single_robot()
+        block_instruction = self.sim_state.s_blocks[coord].instruction
+        robot.left_turns(block_instruction.get_left_turns())
+        if block_instruction.is_drive():
+            self.move_robot(coord, robot)
+        elif block_instruction.is_drop():
+            self.drop(coord, robot)
+        elif block_instruction.is_pick():
+            self.pick(coord, robot)
 
     def pick(self, robo_coord: Coordinate, robot: BuilderState):
         block_coord = robo_coord.get_coord_in_direction(robot.direction)

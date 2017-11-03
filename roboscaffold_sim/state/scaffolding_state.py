@@ -3,6 +3,7 @@ from enum import Enum, auto
 from roboscaffold_sim.direction import Direction
 
 
+# TODO: Break into seperate classes? use tupes/namedtupes as data
 class SInstruction(Enum):
     NONE = auto()
     STOP = auto()

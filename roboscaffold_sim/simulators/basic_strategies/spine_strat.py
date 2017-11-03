@@ -64,13 +64,11 @@ class SpineStrat(BasicStrategy):
         g_type = self.goal_stack[-1].type
         held_block = robot.block
         sim_state = self.sim_state
-        place_s_done = g_type == GType.PLACE_SCAFFOLD and g_coord in sim_state.s_blocks
-        place_b_done = g_type == GType.PLACE_BUILD_BLOCK and g_coord in sim_state.b_blocks
-        pick_s_done = g_type == GType.PICK_SCAFFOLD and held_block is HeldBlock.SCAFFOLD
-        pick_b_done = g_type == GType.PICK_BUILD_BLOCK and held_block is HeldBlock.BUILD
-
-        if place_s_done or place_b_done or pick_s_done or pick_b_done:
-            if place_s_done and self.cache in self.sim_state.s_blocks:
+        if (g_type == GType.PLACE_SCAFFOLD and g_coord in sim_state.s_blocks) or \
+                (g_type == GType.PICK_SCAFFOLD and held_block is HeldBlock.SCAFFOLD) or \
+                (g_type == GType.PLACE_BUILD_BLOCK and g_coord in sim_state.b_blocks)or \
+                (g_type == GType.PICK_BUILD_BLOCK and held_block is HeldBlock.BUILD):
+            if g_type == GType.PLACE_SCAFFOLD and g_coord in sim_state.s_blocks and self.cache in self.sim_state.s_blocks:
                 del self.sim_state.s_blocks[self.cache]
             self.goal_stack = self.goal_stack[0:-1]
             return True
