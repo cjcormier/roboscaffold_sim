@@ -9,7 +9,7 @@ import abc
 class BasicStrategy:
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, sim_state: SimulationState):
+    def __init__(self, sim_state: SimulationState) -> None:
         self.sim_state = sim_state
         self.finished: bool = False
         self.min_y = 0
