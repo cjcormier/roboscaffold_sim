@@ -4,7 +4,6 @@ from roboscaffold_sim.simulators.basic_simulation_list import BasicSimulationLis
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 from roboscaffold_sim.veiw.board import Board
 from roboscaffold_sim.veiw.state_controls import StateControls
-from roboscaffold_sim.veiw.stats import Stats
 
 
 class BasicPlayer(tk.Frame):
@@ -17,24 +16,23 @@ class BasicPlayer(tk.Frame):
         self.states.update_loop(load_to-1)
 
         self.board = Board(parent)
-        self.board.grid(row=0, column=0, rowspan=6)
+        self.board.grid(row=0, column=0, rowspan=4)
         self.board.draw_grid()
 
         self.state_controls = StateControls(parent,
                                             updater=self.get_updater(),
                                             loader=self.get_loader()
                                             )
-        self.state_controls.grid(row=0, column=1, sticky="n", padx=5, pady=5)
+        self.state_controls.grid(row=2, column=1, sticky="s")
 
-        self.stats = Stats(parent)
-        self.stats.grid(row=1, column=1, sticky="wen", padx=5, pady=5)
+        self.label_text = tk.StringVar()
+        self.state_label = tk.Label(parent, textvariable=self.label_text)
+        self.state_label.grid(row=1, column=1, sticky='w')
+        self.update_statistics()
 
         self.board.draw_sim(self.states.states[0])
         self.state_controls.max_state = len(self.states.states)
-        self.state_controls.finished = self.states.states[-1].finished()
-        stats = self.states.analyze()
-        self.stats.update_text(stats[0], stats[2])
-        self.winfo_toplevel().title("Robotic Scafolding Application")
+        self.state_controls.finished = self.states.states[-1].finished
 
     def get_updater(self):
         def fun(frame):
@@ -46,9 +44,17 @@ class BasicPlayer(tk.Frame):
             self.states.update_loop(to_load)
             self.state_controls.finished = self.states.states[-1].finished()
             self.state_controls.max_state = len(self.states.states)
-            stats = self.states.analyze()
-            self.stats.update_text(stats[0], stats[2])
+            self.update_statistics()
         return fun
+
+    def update_statistics(self):
+        analysis = self.states.analyze()
+        text = f'Overall Statistics: \n' \
+               f'Scaffolding used: {analysis[0]}\n' \
+               f'Robot updates: {self.states.robot_updates}\n' \
+               f'Scaffolding placements: {self.states.block_placements}\n' \
+               f'Scaffolding update: {self.states.block_updates}'
+        self.label_text.set(text)
 
     def force_update(self):
         self.board.draw_sim(self.states.states[self.state_controls.current_state-1])

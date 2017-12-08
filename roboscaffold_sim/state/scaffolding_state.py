@@ -46,8 +46,6 @@ class SInstruction(Enum):
                         SInstruction.DROP_FORWARD, SInstruction.DROP_BACK]
 
 
-
-
 class ScaffoldState:
     def __init__(self, instruction: SInstruction = SInstruction.NONE) -> None:
         self.instruction: SInstruction = instruction
@@ -102,6 +100,12 @@ class ScaffoldState:
         elif count == 3:
             self.instruction = SInstruction.DROP_RIGHT
         return desired_dir
+
+    def __eq__(self, other):
+        """Override the default Equals behavior"""
+        if isinstance(other, self.__class__):
+            return self.instruction == other.instruction
+        return NotImplemented
 
     def __repr__(self):
         return self.instruction.name

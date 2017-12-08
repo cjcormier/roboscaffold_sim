@@ -163,7 +163,6 @@ class StateControls(tk.Frame):
                 self.load_textbox.delete('1.0', 'end')
                 self.load_textbox.insert('1.0', 1000)
                 load = 1
-        print(f'Load: {load}')
         self.loader(load)
         if self.finished:
             print('No more to load')
