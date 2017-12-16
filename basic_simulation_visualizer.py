@@ -11,7 +11,8 @@ import argparse
 
 
 def use_basic_structure(args, strat):
-    sim = BasicSimulation.create_with_target_structure(structures[args.structure], strat)
+    struct = structures[args.structure]
+    sim = BasicSimulation.create_with_target_structure(struct, strat)
 
     root = tk.Tk()
     player = BasicPlayer(root, sim)
