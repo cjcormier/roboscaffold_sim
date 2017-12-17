@@ -31,13 +31,13 @@ class BasicSimulation:
     @staticmethod
     def create_with_target_structure(target: CoordinateList,
                                      strat: ClassVar[BasicStrategy]=SpineStrat):
-        if not BasicSimulation.validate_target_structure(target):
+        if not BasicSimulation.is_valid_structure(target):
             raise TargetError(target, 'Given target is not a valid structure')
         target = strat.configure_target(target)
         return BasicSimulation.create_base_sim(strat, target)
 
     @staticmethod
-    def validate_target_structure(target: CoordinateList) -> bool:
+    def is_valid_structure(target: CoordinateList) -> bool:
         remaining_set: CoordinateSet = {x for x in target[1:]}
         neighbors: CoordinateSet = {target[0]}
         working_set: CoordinateSet = {target[0]}
@@ -47,6 +47,7 @@ class BasicSimulation:
             working_set = neighbors.intersection(remaining_set)
             remaining_set = remaining_set.difference(working_set)
 
+        print(remaining_set)
         return not remaining_set
 
     def update(self):

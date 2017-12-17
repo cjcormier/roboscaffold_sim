@@ -41,6 +41,19 @@ house = [
     Coordinate(5, 3),
     Coordinate(6, 3),
 
+    Coordinate(7, 9),
+    Coordinate(7, 8),
+    Coordinate(7, 7),
+    Coordinate(8, 7),
+    Coordinate(9, 7),
+    Coordinate(9, 8),
+    Coordinate(9, 9),
+    Coordinate(8, 9),
+
+    Coordinate(7, 6),
+    Coordinate(8, 5),
+    Coordinate(8, 6),
+    Coordinate(9, 6),
 ]
 
 lip = [

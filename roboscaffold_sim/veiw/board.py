@@ -113,7 +113,7 @@ class Board(tk.Frame):
         grid_offset = (self.line_width+1)//2
         total_offset = block_offset + grid_offset
 
-        if self.horz_offset > 0:
+        if self.horz_offset >= 0:
             x = total_offset + self.grid_size * coord.x
         else:
             x = total_offset + self.grid_size * (self.columns + coord.x - 1)
