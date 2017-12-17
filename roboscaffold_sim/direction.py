@@ -13,6 +13,9 @@ class Direction(Enum):
     def left(self):
         return _left[self]
 
+    def invert(self):
+        return _invert[self]
+
 
 _right = {
     Direction.NORTH: Direction.EAST,
@@ -26,4 +29,11 @@ _left = {
     Direction.EAST: Direction.NORTH,
     Direction.SOUTH: Direction.EAST,
     Direction.WEST: Direction.SOUTH
+}
+
+_invert = {
+    Direction.NORTH: Direction.SOUTH,
+    Direction.EAST: Direction.WEST,
+    Direction.SOUTH: Direction.NORTH,
+    Direction.WEST: Direction.EAST
 }

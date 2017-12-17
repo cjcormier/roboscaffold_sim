@@ -13,6 +13,7 @@ class BasicStrategy:
         self.sim_state = sim_state
         self.finished: bool = False
         self.min_y = 0
+        self.min_x = 0
 
     @abc.abstractmethod
     def update(self, robo_coord, robot) -> bool:

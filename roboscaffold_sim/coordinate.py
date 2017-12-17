@@ -55,6 +55,10 @@ class Coordinate:
         return f'({self.x},{self.y})'
 
 
+def scale(coord: Coordinate, factor: int) -> Coordinate:
+    return Coordinate(coord.x*factor, coord.y*factor)
+
+
 CoordinateList = List[Coordinate]
 CoordinateSet = Set[Coordinate]
 Coordinates = Iterable[Optional[Coordinate]]
