@@ -47,7 +47,6 @@ class BasicSimulation:
             working_set = neighbors.intersection(remaining_set)
             remaining_set = remaining_set.difference(working_set)
 
-        print(remaining_set)
         return not remaining_set
 
     def update(self):
@@ -56,11 +55,7 @@ class BasicSimulation:
             self.update_robots()
 
     def get_single_robot(self) -> Tuple[Coordinate, BuilderState]:
-        if len(self.sim_state.robots) != 1:
-            ValueError('this method requires exactly one robot in the state')
-
-        for coord, robot in self.sim_state.robots.items():
-            return coord, robot
+        return self.sim_state.get_single_robot()
 
     def update_robots(self):
         coord, robot = self.get_single_robot()

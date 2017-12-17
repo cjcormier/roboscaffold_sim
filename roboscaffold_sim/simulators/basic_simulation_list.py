@@ -3,6 +3,7 @@ import traceback
 from typing import List, Optional, Tuple
 
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
+from roboscaffold_sim.state.builder_state import HeldBlock
 from roboscaffold_sim.state.simulation_state import SBlocks
 
 
@@ -14,7 +15,8 @@ class BasicSimulationList:
         self._s_blocks = 0
         self._last_check = 0
         self.robot_updates = 0
-        self.block_placements = 0
+        self.scaffold_placements = 0
+        self.build_placements = 0
         self.block_updates = 0
 
     @staticmethod
@@ -55,8 +57,12 @@ class BasicSimulationList:
                 curr_state = self.states[last_check].sim_state
                 if prev_state.robots.keys() != curr_state.robots.keys():
                     self.robot_updates += 1
-                if prev_state.s_blocks.keys() != curr_state.s_blocks.keys():
-                    self.block_placements += 1
+                if prev_state.get_single_robot()[1].block != curr_state.get_single_robot()[1].block:
+                    blocks = (prev_state.get_single_robot()[1].block, curr_state.get_single_robot()[1].block)
+                    if HeldBlock.SCAFFOLD in blocks:
+                        self.scaffold_placements += 1
+                    elif HeldBlock.BUILD in blocks:
+                        self.build_placements += 1
                 if self.check_block_update(prev_state.s_blocks, curr_state.s_blocks):
                     self.block_updates += 1
             last_check += 1

@@ -1,4 +1,4 @@
-from typing import Dict, List, NamedTuple, Optional, Set
+from typing import Dict, List, NamedTuple, Optional, Set, Tuple
 
 from roboscaffold_sim.coordinate import Coordinate, CoordinateList
 from roboscaffold_sim.direction import Direction as Dir
@@ -36,3 +36,10 @@ class SimulationState:
         self.b_blocks: BBlocks = set()
         self.robots: Robots = dict()
         self.target_structure: CoordinateList = []
+
+    def get_single_robot(self) -> Tuple[Coordinate, BuilderState]:
+        if len(self.robots) != 1:
+            ValueError('this method requires exactly one robot in the state')
+
+        for coord, robot in self.robots.items():
+            return coord, robot

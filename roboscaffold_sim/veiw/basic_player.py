@@ -52,7 +52,8 @@ class BasicPlayer(tk.Frame):
         text = f'Overall Statistics: \n' \
                f'Scaffolding used: {analysis[0]}\n' \
                f'Robot updates: {self.states.robot_updates}\n' \
-               f'Scaffolding placements: {self.states.block_placements}\n' \
+               f'Scaffolding placements: {self.states.scaffold_placements}\n' \
+               f'Block placements: {self.states.build_placements}\n' \
                f'Scaffolding update: {self.states.block_updates}'
         self.label_text.set(text)
 

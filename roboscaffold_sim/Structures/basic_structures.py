@@ -49,11 +49,7 @@ house = [
     Coordinate(9, 8),
     Coordinate(9, 9),
     Coordinate(8, 9),
-
-    Coordinate(7, 6),
-    Coordinate(8, 5),
     Coordinate(8, 6),
-    Coordinate(9, 6),
 ]
 
 lip = [
