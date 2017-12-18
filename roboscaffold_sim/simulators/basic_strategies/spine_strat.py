@@ -1,8 +1,8 @@
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple
 
 import copy
 
-from roboscaffold_sim.coordinate import Coordinate, Right, Up, Left, Down, CoordinateList, scale
+from roboscaffold_sim.coordinate import Coordinate, Right, Up, Left, Down, CoordinateList
 from roboscaffold_sim.direction import Direction as Dir
 from roboscaffold_sim.errors import GoalError
 from roboscaffold_sim.goal_type import GoalType as GType
@@ -19,10 +19,7 @@ class SpineStrat(BasicStrategy):
 
         self.seed: Coordinate = Coordinate(0, 0)
         self.cache: Coordinate = Coordinate(0, 1)
-        self.goal_stack: List[Goal] = list()
-
-        # TODO: At some point replace with class or something
-        self.rib_helper = {'dir': Dir.EAST, 'coord': Right}
+        self.goal_stack = list()
 
     @staticmethod
     def reach_check(b_coord: Coordinate, h_coord: Coordinate) -> bool:
@@ -130,20 +127,17 @@ class SpineStrat(BasicStrategy):
                 self.finished = True
                 return True
             else:
-                h_coord = scale(self.rib_helper['coord'], 1 if struct_coord.y else -1)
-                h_coord += struct_coord
-                direction = self.rib_helper['dir']
-                if struct_coord.y:
-                    direction = direction.invert()
-                new_goal = Goal(struct_coord, GType.PLACE_BUILD_BLOCK, h_coord, direction)
+                h_coord = struct_coord + (Right if struct_coord.y else Left)
+                dir = Dir.WEST if struct_coord.y else Dir.EAST
+                new_goal = Goal(struct_coord, GType.PLACE_BUILD_BLOCK, h_coord, dir)
                 self.goal_stack = [new_goal]
         return False
 
     def get_bridge_goal(self, next_goal: Goal) -> Goal:
         next_needed_coord = self.get_next_needed_block(next_goal.h_coord)
         if next_needed_coord.y == 0:
-            h_coord = next_needed_coord + scale(self.rib_helper['coord'], -1)
-            p_dir = self.rib_helper['dir']
+            h_coord = next_needed_coord + Left
+            p_dir = Dir.EAST
         else:
             p_dir = Dir.SOUTH if next_goal.coord.y > 0 else Dir.NORTH
             h_coord = next_needed_coord + (Up if next_goal.coord.y > 0 else Down)
@@ -153,8 +147,8 @@ class SpineStrat(BasicStrategy):
         p_type = GType.PICK_SCAFFOLD
         unneeded_s_blocks = self.get_next_unneeded_block()
         if unneeded_s_blocks:
-            coord_offset = Up if unneeded_s_blocks.y > 0 else Down if unneeded_s_blocks.y else scale(self.rib_helper['coord'], -1)
-            p_dir = Dir.SOUTH if unneeded_s_blocks.y > 0 else Dir.NORTH if unneeded_s_blocks.y else self.rib_helper['dir']
+            coord_offset = Up if unneeded_s_blocks.y > 0 else Down if unneeded_s_blocks.y else Left
+            p_dir = Dir.SOUTH if unneeded_s_blocks.y > 0 else Dir.NORTH if unneeded_s_blocks.y else Dir.EAST
             h_coord = unneeded_s_blocks + coord_offset
             return Goal(unneeded_s_blocks, p_type, h_coord, p_dir)
         else:
@@ -164,11 +158,11 @@ class SpineStrat(BasicStrategy):
     def app_remove_blockage_goal(self, goal_coord: Coordinate) -> Goal:
         p_type = GType.PLACE_SCAFFOLD
         if goal_coord.y != 0:
-            extend_spine = self.rib_helper['dir']
+            extend_spine = Right
             while extend_spine in self.sim_state.s_blocks:
-                extend_spine += self.rib_helper['dir']
-            h_coord = extend_spine.invert()
-            return Goal(extend_spine, p_type, h_coord, self.rib_helper['dir'])
+                extend_spine += Right
+            h_coord = extend_spine + Left
+            return Goal(extend_spine, p_type, h_coord, Dir.EAST)
         else:
             return Goal(self.cache, p_type, self.seed, Dir.SOUTH)
 
@@ -176,18 +170,16 @@ class SpineStrat(BasicStrategy):
         # first move horizontally, then vertically
         curr_block = copy.copy(self.seed)
         sim_state = self.sim_state
-
         while curr_block != goal:
             if not (curr_block in sim_state.b_blocks or curr_block in sim_state.s_blocks):
                 return curr_block
             if curr_block.x < goal.x:
                 curr_block += Right
-            elif curr_block.x > goal.x:
-                curr_block += Left
             elif curr_block.y < goal.y:
                 curr_block += Down
             elif curr_block.y > goal.y:
                 curr_block += Up
+
         if not (curr_block in sim_state.b_blocks or curr_block in sim_state.s_blocks):
             return curr_block
 
@@ -201,8 +193,8 @@ class SpineStrat(BasicStrategy):
             if b_coord.y != 0 and self.reach_check(b_coord, h_coord):
                 if not reach or self.reach_compare(reach, b_coord):
                     reach = b_coord
-            elif abs(b_coord.x) > abs(h_coord.x):
-                if not spine or abs(b_coord.x) > abs(spine.x):
+            elif b_coord.x > h_coord.x:
+                if not spine or b_coord.x > spine.x:
                     spine = b_coord
 
         return reach if reach else spine

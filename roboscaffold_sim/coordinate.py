@@ -2,11 +2,9 @@ from typing import List, Optional, TypeVar, Set, Iterable
 
 from roboscaffold_sim.direction import Direction
 
-Coord = TypeVar('Coord', bound='Coordinate')
-
-CoordinateList_ = List[Coord]
-CoordinateSet_ = Set[Coord]
-Coordinates_ = Iterable[Optional[Coord]]
+CoordinateList_ = List['Coordinate']
+CoordinateSet_ = Set['Coordinate']
+Coordinates_ = Iterable[Optional['Coordinate']]
 
 
 # TODO: Change this to a namedtuple?
@@ -19,8 +17,17 @@ class Coordinate:
     def get_neighbors(self) -> CoordinateList_:
         return [self+Up, self+Right, self+Down, self+Left]
 
+    def rotate_cw(self) -> 'Coordinate':
+        return Coordinate(-self.y, self.x)
+
+    def rotate_180(self) -> 'Coordinate':
+        return Coordinate(-self.x, -self.y)
+
     def get_coord_in_direction(self, direction):
         return self + coord_change[direction]
+
+    def rotate_ccw(self) -> 'Coordinate':
+        return Coordinate(self.y, -self.x)
 
     def __eq__(self, other):
         """Override the default Equals behavior"""
@@ -53,10 +60,6 @@ class Coordinate:
 
     def __repr__(self):
         return f'({self.x},{self.y})'
-
-
-def scale(coord: Coordinate, factor: int) -> Coordinate:
-    return Coordinate(coord.x*factor, coord.y*factor)
 
 
 CoordinateList = List[Coordinate]
