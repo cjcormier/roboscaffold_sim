@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from roboscaffold_sim.Structures.basic_structures import structures
+from roboscaffold_sim.structures.basic_structures import structures
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 from roboscaffold_sim.simulators.basic_strategies.centroid_offset_spine import \
     CentroidOffsetSpineStrat
@@ -17,6 +17,7 @@ def use_basic_structure(args, strat):
 
     root = tk.Tk()
     player = BasicPlayer(root, sim)
+    player.winfo_toplevel().title("RoboScaffold Sim")
     player.grid()
     root.mainloop()
 
@@ -29,11 +30,11 @@ parser.add_argument('strategy', type=str,
 
 creation_parser = parser.add_subparsers(help='How to create the target structure')
 
-python_parser = creation_parser.add_parser('basic', help='Use a basic python structure')
-python_parser.add_argument('structure', type=str,
+basic_parser = creation_parser.add_parser('basic', help='Use a basic python structure')
+basic_parser.add_argument('structure', type=str,
                            choices=['column', 'square', 'house', 'lip'],
                            help='Structure to use')
-python_parser.set_defaults(create=use_basic_structure)
+basic_parser.set_defaults(create=use_basic_structure)
 
 
 string_parser = creation_parser.add_parser('string', help='Create structure from string, not currently implemented')

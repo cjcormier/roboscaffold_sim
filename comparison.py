@@ -72,6 +72,7 @@ if __name__ == '__main__':
     with open(f'{dimension}_grid_result.csv', 'w') as file:
         file.write('index,spine scaffolding,spine time,offset scaffolding,offset time,'
                    'centroid scaffolding,centroid time\n')
+        s = 0
         while j < max_s:
             j += 1
             struct = create_struct(dimension, j)
@@ -83,10 +84,13 @@ if __name__ == '__main__':
                 file.write(f'{j},{results_spine[0]},{results_spine[1]},'
                            f'{results_offset[0]},{results_offset[1]},'
                            f'{results_centroid[0]},{results_centroid[1]}\n')
+                s += 1
 
             except TargetError as e:
                 exceptions += 1
             if j % 10000 == 0:
-                print(f'{(j/max_s):.2%} {j-exceptions}/{j} {time.time()-start_time:.0f}s')
+                print(f'{(j/max_s):.2%} {j-exceptions}/{j} {time.time()-start_time:.0f}s'
+                      f' {((j-exceptions)/j):.2%} {(s/10000):.2%}')
+                s = 0
     end_time = time.time()
     print(f'{end_time-start_time:.0f}s')

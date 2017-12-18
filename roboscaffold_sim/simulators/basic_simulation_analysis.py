@@ -9,12 +9,11 @@ from roboscaffold_sim.simulators.basic_strategies.basic_strategy import BasicStr
 class BasicSimulationAnalysis:
     def __init__(self, initial_state: BasicAnalyzerSimulation = BasicAnalyzerSimulation()) -> None:
         self._working_state: BasicAnalyzerSimulation = initial_state
-        self._b_blocks = 0
         self._s_blocks = 0
         self._time = 0
 
     @staticmethod
-    def analyze_sim(target: CoordinateList, strat: ClassVar[BasicStrategy]) -> Tuple[int, int, int]:
+    def analyze_sim(target: CoordinateList, strat: ClassVar[BasicStrategy]) -> Tuple[int, int]:
         sim = BasicAnalyzerSimulation.create_with_target_structure(target, strat)
         return BasicSimulationAnalysis(sim).analyze()
 
@@ -26,7 +25,7 @@ class BasicSimulationAnalysis:
             traceback.print_exception(etype=type(e), value=e, tb=e.__traceback__)
             return e
 
-    def analyze(self) -> Tuple[int, int, int]:
+    def analyze(self) -> Tuple[int, int]:
         while True:
             if self._working_state.finished():
                 break
@@ -34,11 +33,10 @@ class BasicSimulationAnalysis:
                 if self.update():
                     break
             self.analyze_step()
-        return self._b_blocks, self._s_blocks, self._time
+        return self._s_blocks, self._time
 
     def analyze_step(self) -> None:
         if not self._working_state:
             raise Exception("No simulation in SimulationList")
         self._s_blocks = max(len(self._working_state.sim_state.s_blocks), self._s_blocks)
-        self._b_blocks = max(len(self._working_state.sim_state.b_blocks), self._b_blocks)
         self._time += 1

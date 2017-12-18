@@ -1,21 +1,20 @@
 from enum import Enum, auto
 
 
-# TODO: Decide if these should be different classes, use tupes/namedtupes as data
 class GoalType(Enum):
-    PLACE_BUILD_BLOCK = auto()
-    PLACE_SCAFFOLD = auto()
-    PICK_BUILD_BLOCK = auto()
-    PICK_SCAFFOLD = auto()
+    PLACE_BUILD_BLOCK = (0, False, True, False, True)
+    PLACE_SCAFFOLD = (1, False, True, True, False)
+    PICK_BUILD_BLOCK = (2, True, False, False, True)
+    PICK_SCAFFOLD = (3, True, False, True, False)
 
     def is_pick(self) -> bool:
-        return self in [self.PICK_SCAFFOLD, self.PICK_BUILD_BLOCK]
+        return self.value[1]
 
     def is_place(self) -> bool:
-        return self in [self.PLACE_SCAFFOLD, self.PLACE_BUILD_BLOCK]
+        return self.value[2]
 
     def is_scaffold(self) -> bool:
-        return self in [self.PLACE_SCAFFOLD, self.PICK_SCAFFOLD]
+        return self.value[3]
 
     def is_build(self) -> bool:
-        return self in [self.PLACE_BUILD_BLOCK, self.PICK_BUILD_BLOCK]
+        return self.value[4]

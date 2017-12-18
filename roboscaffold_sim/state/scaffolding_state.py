@@ -3,7 +3,6 @@ from enum import Enum
 from roboscaffold_sim.direction import Direction
 
 
-# TODO: Break into seperate classes? use tupes/namedtupes as data
 class SInstruction(Enum):
     NONE = (0, 0, True, False, False)
     STOP = (1, 0, False, False, False)
@@ -22,7 +21,6 @@ class SInstruction(Enum):
     DROP_FORWARD = (11, 0, False, False, True)
     DROP_BACK = (12, 2, False, False, True)
 
-    # TODO: Change from chained if to dict
     def get_left_turns(self) -> int:
         return self.value[1]
 
