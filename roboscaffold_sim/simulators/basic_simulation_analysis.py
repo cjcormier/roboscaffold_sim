@@ -2,20 +2,20 @@ import traceback
 from typing import Optional, Tuple, ClassVar
 
 from roboscaffold_sim.coordinate import CoordinateList
-from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
+from roboscaffold_sim.simulators.basic_analyzer_simulator import BasicAnalyzerSimulation
 from roboscaffold_sim.simulators.basic_strategies.basic_strategy import BasicStrategy
 
 
 class BasicSimulationAnalysis:
-    def __init__(self, initial_state: BasicSimulation = BasicSimulation()) -> None:
-        self._working_state: BasicSimulation = initial_state
+    def __init__(self, initial_state: BasicAnalyzerSimulation = BasicAnalyzerSimulation()) -> None:
+        self._working_state: BasicAnalyzerSimulation = initial_state
         self._b_blocks = 0
         self._s_blocks = 0
         self._time = 0
 
     @staticmethod
     def analyze_sim(target: CoordinateList, strat: ClassVar[BasicStrategy]) -> Tuple[int, int, int]:
-        sim = BasicSimulation.create_with_target_structure(target, strat)
+        sim = BasicAnalyzerSimulation.create_with_target_structure(target, strat)
         return BasicSimulationAnalysis(sim).analyze()
 
     def update(self) -> Optional[Exception]:

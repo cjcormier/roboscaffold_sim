@@ -1,4 +1,4 @@
-from typing import List, Optional, TypeVar, Set, Iterable
+from typing import List, Optional, Set, Iterable
 
 from roboscaffold_sim.direction import Direction
 
@@ -26,6 +26,19 @@ class Coordinate:
     def get_coord_in_direction(self, direction):
         return self + coord_change[direction]
 
+    def get_direction_of_coord(self, other):
+        if other.x == self.x:
+            if other.y > self.y:
+                return Direction.SOUTH
+            elif other.y < self.y:
+                return Direction.NORTH
+        elif other.y == self.y:
+            if other.x > self.x:
+                return Direction.EAST
+            elif other.x < self.x:
+                return Direction.WEST
+        return None
+
     def rotate_ccw(self) -> 'Coordinate':
         return Coordinate(self.y, -self.x)
 
@@ -43,7 +56,9 @@ class Coordinate:
 
     def __hash__(self):
         """Override the default hash behavior (that returns the id or the object)"""
-        return hash((self.x, self.y))
+        # Assumes x and y within -100 to 100
+        # for general hash function use hash((self.x, self.y))
+        return self.x*100 + self.y
 
     def __add__(self, other):
         if isinstance(other, self.__class__):

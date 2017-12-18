@@ -1,49 +1,39 @@
-from enum import Enum, auto
+from enum import Enum
 
 from roboscaffold_sim.direction import Direction
 
 
 # TODO: Break into seperate classes? use tupes/namedtupes as data
 class SInstruction(Enum):
-    NONE = auto()
-    STOP = auto()
+    NONE = (0, 0, True, False, False)
+    STOP = (1, 0, False, False, False)
 
-    DRIVE_LEFT = auto()
-    DRIVE_RIGHT = auto()
-    DRIVE_BACK = auto()
+    DRIVE_LEFT = (2, 1, True, False, False)
+    DRIVE_RIGHT = (3, 3, True, False, False)
+    DRIVE_BACK = (4, 2, True, False, False)
 
-    PICK_LEFT = auto()
-    PICK_RIGHT = auto()
-    PICK_FORWARD = auto()
-    PICK_BACK = auto()
+    PICK_LEFT = (5, 1, False, True, False)
+    PICK_RIGHT = (6, 3, False, True, False)
+    PICK_FORWARD = (7, 0, False, True, False)
+    PICK_BACK = (8, 2, False, True, False)
 
-    DROP_LEFT = auto()
-    DROP_RIGHT = auto()
-    DROP_FORWARD = auto()
-    DROP_BACK = auto()
+    DROP_LEFT = (9, 1, False, False, True)
+    DROP_RIGHT = (10, 3, False, False, True)
+    DROP_FORWARD = (11, 0, False, False, True)
+    DROP_BACK = (12, 2, False, False, True)
 
     # TODO: Change from chained if to dict
     def get_left_turns(self) -> int:
-        if self in [SInstruction.NONE, SInstruction.PICK_FORWARD, SInstruction.DROP_FORWARD,SInstruction.STOP]:
-            return 0
-        elif self in [SInstruction.DRIVE_LEFT, SInstruction.PICK_LEFT, SInstruction.DROP_LEFT]:
-            return 1
-        elif self in [SInstruction.DRIVE_BACK, SInstruction.PICK_BACK, SInstruction.DROP_BACK]:
-            return 2
-        elif self in [SInstruction.DRIVE_RIGHT, SInstruction.PICK_RIGHT, SInstruction.DROP_RIGHT]:
-            return 3
+        return self.value[1]
 
     def is_drive(self):
-        return self in [SInstruction.DRIVE_LEFT, SInstruction.DRIVE_RIGHT,
-                        SInstruction.DRIVE_BACK, SInstruction.NONE]
+        return self.value[2]
 
     def is_pick(self):
-        return self in [SInstruction.PICK_LEFT, SInstruction.PICK_RIGHT,
-                        SInstruction.PICK_FORWARD, SInstruction.PICK_BACK]
+        return self.value[3]
 
     def is_drop(self):
-        return self in [SInstruction.DROP_LEFT, SInstruction.DROP_RIGHT,
-                        SInstruction.DROP_FORWARD, SInstruction.DROP_BACK]
+        return self.value[4]
 
 
 class ScaffoldState:
