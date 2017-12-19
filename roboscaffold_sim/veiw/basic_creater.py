@@ -1,5 +1,6 @@
 import tkinter as tk
 
+from comparison import create_struct
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 from roboscaffold_sim.structures.basic_structures import structures
 from roboscaffold_sim.coordinate import CoordinateList, Coordinate
@@ -18,10 +19,42 @@ strategies = {
 }
 
 
-class TargetCreator(tk.Frame):
+class NumCreator(tk.Frame):
     def __init__(self, parent, struct_callback, *args, **kwargs) -> None:
         tk.Frame.__init__(self, parent, *args, **kwargs)
-        self.struct_callback = struct_callback
+
+        self.callback = struct_callback
+
+        self.dim_label = tk.Label(self, text='Dimension')
+        self.dim_label.grid(row=0, column=0)
+
+        self.dim_box = tk.Text(self, width=10, height=1)
+        self.dim_box.grid(row=1, column=0)
+
+        self.num_label = tk.Label(self, text='Value')
+        self.num_label.grid(row=2, column=0)
+
+        self.num_box = tk.Text(self, width=10, height=1)
+        self.num_box.grid(row=3, column=0)
+
+        self.num_button = tk.Button(self, text='From Number', command=self.pressed)
+        self.num_button.grid(row=4, column=0)
+
+    def pressed(self):
+        dim = self.dim_box.get('1.0', 'end')
+        num = self.num_box.get('1.0', 'end')
+        try:
+            dim = int(dim)
+            num = int(num)
+        except ValueError:
+            print('invalid num')
+        self.callback(create_struct(dim, num))
+
+
+class TargetCreator(tk.Frame):
+    def __init__(self, parent, set_struct_callback, struct_callback, *args, **kwargs) -> None:
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.struct_callback = set_struct_callback
 
         self.label = tk.Label(self, text='Create Target Structure')
         self.label.grid(row=0, column=0, sticky='w')
@@ -43,8 +76,8 @@ class TargetCreator(tk.Frame):
         self.load = tk.Button(self, text="Load Structure", command=lambda: print('load'))
         self.load.grid(row=4, column=0, sticky='sw')
 
-        self.load = tk.Button(self, text="From Number", command=lambda: print('number'))
-        self.load.grid(row=4, column=1, sticky='sw')
+        self.num_creator = NumCreator(self, struct_callback)
+        self.num_creator.grid(row=5, column=0, sticky='sw')
 
     def draw_callback(self):
         popup = tk.Toplevel()
@@ -90,7 +123,7 @@ class BasicCreator(tk.Frame):
         self.board.grid(row=0, column=0, rowspan=4)
         self.board.draw_grid()
 
-        self.target_creator = TargetCreator(self, self.create_set_struct)
+        self.target_creator = TargetCreator(self, self.create_set_struct, self.set_struct)
         self.target_creator.grid(row=0, column=1, sticky="n")
 
         self.strat_chooser = StratChooser(self)
