@@ -15,24 +15,27 @@ class BasicPlayer(tk.Frame):
         self.states = BasicSimulationList(starting_state)
         self.states.update_loop(load_to-1)
 
-        self.board = Board(parent)
+        self.board = Board(self)
         self.board.grid(row=0, column=0, rowspan=4)
         self.board.draw_grid()
 
-        self.state_controls = StateControls(parent,
+        self.state_controls = StateControls(self,
                                             updater=self.get_updater(),
                                             loader=self.get_loader()
                                             )
         self.state_controls.grid(row=2, column=1, sticky="s")
 
         self.stat_text = tk.StringVar()
-        self.stat_label = tk.Label(parent, textvariable=self.stat_text)
+        self.stat_label = tk.Label(self, textvariable=self.stat_text)
         self.stat_label.grid(row=1, column=1, sticky='w')
+
+        self.save = tk.Button(self, text='save', command=self.save)
+        self.save.grid(row=3, column=1)
         self.update_statistics()
 
         self.board.draw_sim(self.states.states[0])
         self.state_controls.max_state = len(self.states.states)
-        self.state_controls.finished = self.states.states[-1].finished
+        self.state_controls.finished = self.states.states[-1].finished()
 
     def get_updater(self):
         def fun(frame):
@@ -59,3 +62,6 @@ class BasicPlayer(tk.Frame):
 
     def force_update(self):
         self.board.draw_sim(self.states.states[self.state_controls.current_state-1])
+
+    def save(self):
+        print('save')

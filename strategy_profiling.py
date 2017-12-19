@@ -101,8 +101,8 @@ if __name__ == '__main__':
                 time_remaining = time_est-time_elapsed
 
                 print(f'{percentage:.2%} {j-exceptions}/{j} {time_elapsed:.0f}s '
-                      f'{((j-exceptions)/j):.2%} {(s/10000):.2%} {time_est:.2%}s '
-                      f'{time_remaining}s')
+                      f'{((j-exceptions)/j):.2%} {(s/10000):.2%} {int(time_est)}s '
+                      f'{int(time_remaining)}s')
                 s = 0
     end_time = time.time()
     print(f'{end_time-start_time:.0f}s')

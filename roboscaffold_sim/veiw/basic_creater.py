@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from comparison import create_struct
+from strategy_profiling import create_struct
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 from roboscaffold_sim.structures.basic_structures import structures
 from roboscaffold_sim.coordinate import CoordinateList, Coordinate
