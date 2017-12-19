@@ -46,9 +46,9 @@ class NumCreator(tk.Frame):
         try:
             dim = int(dim)
             num = int(num)
+            self.callback(create_struct(dim, num))
         except ValueError:
             print('invalid num')
-        self.callback(create_struct(dim, num))
 
 
 class TargetCreator(tk.Frame):
