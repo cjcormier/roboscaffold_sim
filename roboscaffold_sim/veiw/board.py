@@ -21,8 +21,8 @@ class Board(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
 
-        self.rows = 10
-        self.columns = 10
+        self.rows = 13
+        self.columns = 13
         self.grid_size = 50
 
         self.line_width = 3
