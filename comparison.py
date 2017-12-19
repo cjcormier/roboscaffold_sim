@@ -14,33 +14,37 @@ def max_structs(dimension):
     outer_size = 2**(dimension**2)
     inner_size = 2**(inner_dim**2)
 
-    max_s= outer_size - inner_size
+    max_s = outer_size - inner_size
     return max_s
 
 
 def create_struct(dimension, n):
     struct = list()
-    add_inner_struct(dimension, n % (2 ** (dimension ** 2)), struct)
-    add_outer_struct(dimension, n // (2 ** (dimension ** 2)), struct)
+    inner_size = 2**((dimension-1)**2)
+    add_inner_struct(dimension, n % inner_size, struct)
+    add_outer_struct(dimension, n // inner_size, struct)
     return struct
 
 
 def add_inner_struct(dimension, n, struct):
-    for y in range(dimension):
-        for x in range(dimension):
+    # print(f'inner {n}')
+    for y in range(dimension-1):
+        for x in range(dimension-1):
             if n % 2:
-                struct.append(Coordinate(x, y))
+                struct.append(Coordinate(x+1, y+1))
             n //= 2
             if n == 0:
                 return
             elif n < 0:
                 raise Exception('n should always be positive')
-    raise Exception('n should be 0 and function should have returned by now')
+    raise Exception(f'n should be 0 and function should have returned by now but is {n}')
 
 
 def add_outer_struct(dimension, n, struct):
+    # print(f'outer {n}')
     for x in range(dimension-1):
         if n % 2:
+            # print(f'outer x hit {x+1} at {n}')
             struct.append(Coordinate(x+1, 0))
         n //= 2
         if n == 0:
@@ -49,6 +53,7 @@ def add_outer_struct(dimension, n, struct):
             raise Exception('n should always be positive')
     for y in range(dimension-1):
         if n % 2:
+            # print(f'outer y hit {y+1} at {n}')
             struct.append(Coordinate(0, y+1))
         n //= 2
         if n == 0:
@@ -62,7 +67,7 @@ def add_outer_struct(dimension, n, struct):
 
 
 if __name__ == '__main__':
-    dimension = 5
+    dimension = 4
     max_s = max_structs(dimension)
     print(max_s)
     start_time = time.time()
@@ -73,6 +78,7 @@ if __name__ == '__main__':
         file.write('index,spine scaffolding,spine time,offset scaffolding,offset time,'
                    'centroid scaffolding,centroid time\n')
         s = 0
+        structs = set()
         while j < max_s:
             j += 1
             struct = create_struct(dimension, j)
@@ -88,9 +94,15 @@ if __name__ == '__main__':
 
             except TargetError as e:
                 exceptions += 1
-            if j % 10000 == 0:
-                print(f'{(j/max_s):.2%} {j-exceptions}/{j} {time.time()-start_time:.0f}s'
-                      f' {((j-exceptions)/j):.2%} {(s/10000):.2%}')
+            if s % 10000 == 0:
+                time_elapsed = time.time() - start_time
+                percentage = j/max_s
+                time_est = time_elapsed/percentage
+                time_remaining = time_est-time_elapsed
+
+                print(f'{percentage:.2%} {j-exceptions}/{j} {time_elapsed:.0f}s '
+                      f'{((j-exceptions)/j):.2%} {(s/10000):.2%} {time_est:.2%}s '
+                      f'{time_remaining}s')
                 s = 0
     end_time = time.time()
     print(f'{end_time-start_time:.0f}s')
