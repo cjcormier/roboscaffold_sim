@@ -77,7 +77,7 @@ class Board(tk.Frame):
 
         self.canvas = tk.Canvas(self, width=needed_width, height=needed_height)
         self.canvas.configure(background=self.background_color)
-        self.canvas.grid()
+        self.canvas.grid(row=0, column=0)
         self.tooltips = []
         self.vert_offset = 0
         self.horz_offset = 0

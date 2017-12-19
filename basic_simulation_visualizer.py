@@ -32,8 +32,8 @@ creation_parser = parser.add_subparsers(help='How to create the target structure
 
 basic_parser = creation_parser.add_parser('basic', help='Use a basic python structure')
 basic_parser.add_argument('structure', type=str,
-                           choices=['column', 'square', 'house', 'lip'],
-                           help='Structure to use')
+                          choices=['column', 'square', 'house', 'lip'],
+                          help='Structure to use')
 basic_parser.set_defaults(create=use_basic_structure)
 
 

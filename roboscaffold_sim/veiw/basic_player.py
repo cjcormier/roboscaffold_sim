@@ -25,9 +25,9 @@ class BasicPlayer(tk.Frame):
                                             )
         self.state_controls.grid(row=2, column=1, sticky="s")
 
-        self.label_text = tk.StringVar()
-        self.state_label = tk.Label(parent, textvariable=self.label_text)
-        self.state_label.grid(row=1, column=1, sticky='w')
+        self.stat_text = tk.StringVar()
+        self.stat_label = tk.Label(parent, textvariable=self.stat_text)
+        self.stat_label.grid(row=1, column=1, sticky='w')
         self.update_statistics()
 
         self.board.draw_sim(self.states.states[0])
@@ -55,7 +55,7 @@ class BasicPlayer(tk.Frame):
                f'Scaffolding placements: {self.states.scaffold_placements}\n' \
                f'Block placements: {self.states.build_placements}\n' \
                f'Scaffolding update: {self.states.block_updates}'
-        self.label_text.set(text)
+        self.stat_text.set(text)
 
     def force_update(self):
         self.board.draw_sim(self.states.states[self.state_controls.current_state-1])

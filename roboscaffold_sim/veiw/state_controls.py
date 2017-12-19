@@ -103,7 +103,7 @@ class StateControls(tk.Frame):
 
     def update_state(self, new_scale=False):
         if new_scale:
-            self.current_state = self.scale.get()
+            self._current_state = self.scale.get()
         new_text = f'{self.current_state}/{self.max_state}'
         new_text += '' if self.finished else '+'
         self.label_text.set(new_text)
