@@ -1,9 +1,11 @@
 import copy
 import traceback
+from io import TextIOWrapper
 from typing import List, Optional, Tuple
 
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 from roboscaffold_sim.state.builder_state import HeldBlock
+from roboscaffold_sim.state.scaffolding_state import SInstruction
 from roboscaffold_sim.state.simulation_state import SBlocks
 
 
@@ -70,8 +72,34 @@ class BasicSimulationList:
         self._last_check = last_check
         return self._s_blocks, self._b_blocks, self._last_check
 
+    def save(self, file: TextIOWrapper):
+        struct = self.states[0].sim_state.target_structure
+        file.write(' '.join(str(coord) for coord in struct)+'\n')
+        file.write(str(self.states[0].strategy.seed))
+        file.write(' ')
+        file.write(str(self.states[0].strategy.cache))
+        file.write('\n')
+
+        prev_blocks = dict()
+        for i, state in enumerate(self.states):
+            s_blocks = state.sim_state.s_blocks
+            if self.check_block_update(prev_blocks, s_blocks):
+                for goal in state.strategy.goal_stack:
+                    file.write(f' {goal.coord}:{goal.type.name}')
+                file.write('\n')
+                file.write(str(i)+' scaffolds:')
+                for coord, s_block in s_blocks.items():
+                    if s_block.instruction is not SInstruction.NONE:
+                        file.write(f' {coord}:{s_block.instruction.name}')
+                file.write('\n')
+                file.write(str(i)+' goals:')
+            prev_blocks = s_blocks
+        pass
+
     @staticmethod
     def check_block_update(prev_blocks: SBlocks, curr_blocks: SBlocks):
+        if prev_blocks is None:
+            return True
         common_coords = set(prev_blocks.keys()).intersection(set(curr_blocks.keys()))
         for coord in common_coords:
             if prev_blocks[coord] != curr_blocks[coord]:

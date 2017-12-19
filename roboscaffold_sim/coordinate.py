@@ -41,6 +41,12 @@ class Coordinate:
     def rotate_ccw(self) -> 'Coordinate':
         return Coordinate(self.y, -self.x)
 
+    @staticmethod
+    def from_string(string: str):
+        string = string.strip('()')
+        x, y = tuple(string.split(','))
+        return Coordinate(int(x), int(y))
+
     def __eq__(self, other):
         """Override the default Equals behavior"""
         if isinstance(other, self.__class__):

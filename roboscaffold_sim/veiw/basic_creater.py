@@ -1,5 +1,9 @@
 import tkinter as tk
 
+import os
+
+from roboscaffold_sim.simulators.basic_strategies.load_strat import LoadStrat
+from roboscaffold_sim.state.simulation_state import SimulationState
 from strategy_profiling import create_struct
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 from roboscaffold_sim.structures.basic_structures import structures
@@ -53,6 +57,41 @@ class NumCreator(tk.Frame):
             print('invalid num')
 
 
+class LoadCreator(tk.Frame):
+    def __init__(self, parent, struct_callback, root, *args, **kwargs) -> None:
+        tk.Frame.__init__(self, parent,
+                          relief='raised', bd=2, padx=3, pady=3,
+                          *args, **kwargs)
+        self.root = root
+        self.load_box = tk.Text(self, width=30, height=1)
+        self.load_box.grid(row=0, column=0, columnspan=2)
+        self.load = tk.Button(self, text="Load Structure", command=self.load)
+        self.load.grid(row=1, column=0, sticky='sw', padx=3, pady=3)
+        self.load_run = tk.Button(self, text="Load Run", command=self.load_run)
+        self.load_run.grid(row=1, column=1, sticky='sw', padx=3, pady=3)
+        self.callback = struct_callback
+
+    def load(self):
+        file_name = self.load_box.get('1.0', 'end')[:-1]
+        with open(file_name) as file:
+            struct = LoadStrat.load_coords(file)
+            min_x = min(coord.x for coord in struct)
+            min_y = min(coord.y for coord in struct)
+            offset = Coordinate(-min_x, -min_y)
+            struct = [coord+offset for coord in struct]
+            self.callback(struct)
+
+    def load_run(self):
+        strat = LoadStrat
+        sim = BasicSimulation.create_with_target_structure([Coordinate(0, 0)], strat)
+        file_name = self.load_box.get('1.0', 'end')[:-1]
+        sim.strategy.load(file_name)
+        player = BasicPlayer(self.winfo_toplevel(), sim)
+        player.grid()
+        player.winfo_toplevel().title("RoboScaffold Sim")
+        self.root.destroy()
+
+
 class TargetCreator(tk.Frame):
     def __init__(self, parent, set_struct_callback, struct_callback, *args, **kwargs) -> None:
         tk.Frame.__init__(self, parent, *args, **kwargs)
@@ -65,10 +104,10 @@ class TargetCreator(tk.Frame):
         self.draw.grid(row=1, column=0, sticky='sw', padx=3, pady=3)
 
         basic_frame = tk.Frame(self, relief='raised', bd=2, padx=3, pady=3,)
-        basic_frame.grid(row=3, column=0, columnspan=4, padx=3, pady=3)
+        basic_frame.grid(row=3, column=0, columnspan=4, sticky='w', padx=3, pady=3)
 
         self.basic_label = tk.Label(basic_frame, text='Basic structures')
-        self.basic_label.grid(row=0, column=0, sticky='w', columnspan=4)
+        self.basic_label.grid(row=0, column=0, sticky='we', columnspan=4)
 
         i = 0
         for name, target in structures.items():
@@ -76,8 +115,8 @@ class TargetCreator(tk.Frame):
             structure_button.grid(row=1, column=i)
             i += 1
 
-        self.load = tk.Button(self, text="Load Structure", command=lambda: print('load'))
-        self.load.grid(row=4, column=0, sticky='sw', padx=3, pady=3)
+        self.load_creator = LoadCreator(self, struct_callback, parent)
+        self.load_creator.grid(row=4, column=0)
 
         self.num_creator = NumCreator(self, struct_callback)
         self.num_creator.grid(row=5, column=0, sticky='sw', padx=3, pady=3)

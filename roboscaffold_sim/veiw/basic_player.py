@@ -28,10 +28,16 @@ class BasicPlayer(tk.Frame):
         self.stat_text = tk.StringVar()
         self.stat_label = tk.Label(self, textvariable=self.stat_text)
         self.stat_label.grid(row=1, column=1, sticky='w')
-
-        self.save = tk.Button(self, text='save', command=self.save)
-        self.save.grid(row=3, column=1)
         self.update_statistics()
+
+        self.save_frame = tk.Frame(self)
+        self.save_frame.grid(row=3, column=1)
+        self.save = tk.Button(self.save_frame, text='save', command=self.save)
+        self.save.grid(row=0, column=0)
+        self.save_label = tk.Label(self.save_frame, text='file name')
+        self.save_label.grid(row=1, column=0, padx=1)
+        self.save_text = tk.Text(self.save_frame, width=30, height=1)
+        self.save_text.grid(row=1, column=1)
 
         self.board.draw_sim(self.states.states[0])
         self.state_controls.max_state = len(self.states.states)
@@ -64,4 +70,6 @@ class BasicPlayer(tk.Frame):
         self.board.draw_sim(self.states.states[self.state_controls.current_state-1])
 
     def save(self):
-        print('save')
+        file_name = self.save_text.get('1.0', 'end')
+        with open(file_name, 'w') as file:
+            self.states.save(file)
