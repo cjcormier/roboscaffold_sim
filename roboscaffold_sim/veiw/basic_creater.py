@@ -21,7 +21,9 @@ strategies = {
 
 class NumCreator(tk.Frame):
     def __init__(self, parent, struct_callback, *args, **kwargs) -> None:
-        tk.Frame.__init__(self, parent, *args, **kwargs)
+        tk.Frame.__init__(self, parent,
+                          relief='raised', bd=2, padx=3, pady=3,
+                          *args, **kwargs)
 
         self.callback = struct_callback
 
@@ -60,24 +62,25 @@ class TargetCreator(tk.Frame):
         self.label.grid(row=0, column=0, sticky='w')
 
         self.draw = tk.Button(self, text="Draw Structure", command=self.draw_callback)
-        self.draw.grid(row=1, column=0, sticky='sw')
+        self.draw.grid(row=1, column=0, sticky='sw', padx=3, pady=3)
 
-        self.basic_label = tk.Label(self, text='Basic structures')
-        self.basic_label.grid(row=2, column=0, sticky='w')
+        basic_frame = tk.Frame(self, relief='raised', bd=2, padx=3, pady=3,)
+        basic_frame.grid(row=3, column=0, columnspan=4, padx=3, pady=3)
+
+        self.basic_label = tk.Label(basic_frame, text='Basic structures')
+        self.basic_label.grid(row=0, column=0, sticky='w', columnspan=4)
 
         i = 0
-        basic_frame = tk.Frame(self)
-        basic_frame.grid(row=3, column=0, columnspan=4)
         for name, target in structures.items():
             structure_button = tk.Button(basic_frame, text=name, command=self.struct_callback(structures[name]))
-            structure_button.grid(row=0, column=i)
+            structure_button.grid(row=1, column=i)
             i += 1
 
         self.load = tk.Button(self, text="Load Structure", command=lambda: print('load'))
-        self.load.grid(row=4, column=0, sticky='sw')
+        self.load.grid(row=4, column=0, sticky='sw', padx=3, pady=3)
 
         self.num_creator = NumCreator(self, struct_callback)
-        self.num_creator.grid(row=5, column=0, sticky='sw')
+        self.num_creator.grid(row=5, column=0, sticky='sw', padx=3, pady=3)
 
     def draw_callback(self):
         popup = tk.Toplevel()
