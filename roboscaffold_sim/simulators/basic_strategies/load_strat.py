@@ -1,32 +1,58 @@
+from copy import deepcopy
 from io import TextIOWrapper
 from typing import Tuple, List
 
-from roboscaffold_sim.coordinate import Coordinate, Coordinates, CoordinateList
-from roboscaffold_sim.goal_type import GoalType as GType
+from roboscaffold_sim.coordinate import Coordinate, CoordinateList
+from roboscaffold_sim.goal_type import GoalType as GType, GoalType
 from roboscaffold_sim.simulators.basic_strategies.basic_strategy import \
     BasicStrategy
 from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
-from roboscaffold_sim.state.scaffolding_state import ScaffoldState
+from roboscaffold_sim.state.scaffolding_state import ScaffoldState, SInstruction
 from roboscaffold_sim.state.simulation_state import SimulationState, Goal, Goals
 
 
 class LoadStrat(BasicStrategy):
-    def __init__(self, sim_state: SimulationState, ) -> None:
+    def __init__(self, sim_state: SimulationState = SimulationState()) -> None:
         BasicStrategy.__init__(self, sim_state)
 
         self.seed: Coordinate = Coordinate(0, 0)
         self.cache: Coordinate = Coordinate(0, 1)
         self.goal_stack: Goals = []
-        self.curr_index = 0
-        self.overall_index = 0
-        self.data: List(Goals, Tuple(Coordinate, ScaffoldState)) = []
-        self.sim_state = sim_state
+        self.index = 0
+        self.goal_stacks: List[Goals] = []
+        self.sinstructions: List[List[Tuple[Coordinate, SInstruction]]] = []
 
     def load(self, file_name: str):
         with open(file_name, 'r') as file:
             self.sim_state.target_structure = self.load_coords(file)
-            self.min_x = min(coord.x for coord in self.sim_state.target_structure)
-            self.min_y = min(coord.y for coord in self.sim_state.target_structure)
+            self.min_x = min(min(coord.x for coord in self.sim_state.target_structure), 0)
+            self.min_y = min(min(coord.y for coord in self.sim_state.target_structure), 0)
+            line = file.readline()
+            while line != '':
+                goals = line.strip('0123456789 goals:\n').split(' ')
+                goals = [self.create_goal(goal) for goal in goals]
+                self.goal_stacks.append(goals)
+                line = file.readline()
+                scaffolds = line.strip('0123456789 scafolds:\n').split(' ')
+                scaffolds = [self.create_scaffold(s) for s in scaffolds]
+                self.sinstructions.append(scaffolds)
+
+                line = file.readline()
+            self.update(*self.sim_state.get_single_robot())
+
+    @staticmethod
+    def create_goal(string: str) -> Goal:
+        coord, gtype = string.split(':')
+        coord = Coordinate.from_string(coord)
+        gtype = GoalType[gtype]
+        return Goal(coord, gtype, None, None)
+
+    @staticmethod
+    def create_scaffold(string: str) -> Tuple[Coordinate, SInstruction]:
+        coord, stype = string.split(':')
+        coord = Coordinate.from_string(coord)
+        stype = SInstruction[stype]
+        return coord, stype
 
     @staticmethod
     def load_coords(file: TextIOWrapper) -> CoordinateList:
@@ -36,11 +62,16 @@ class LoadStrat(BasicStrategy):
             coords.append(Coordinate.from_string(block))
         return coords
 
-    def update(self, robo_coord, robot) -> bool:
+    def update(self, robo_coord: Coordinate, robot: BuilderState) -> bool:
         goal_finished = self.check_for_finished_goals(robot)
         if goal_finished:
-            if self.determine_new_goals(robo_coord, robot):
+            if self.index == len(self.goal_stacks):
+                self.finished = True
+                return False
+            else:
+                self.determine_new_goals(robo_coord, robot)
                 self.update_scaffolding(robo_coord, robot)
+                self.index += 1
                 return False
         return True
 
@@ -66,20 +97,33 @@ class LoadStrat(BasicStrategy):
 
     def determine_new_goals(self, robo_coord: Coordinate, robot: BuilderState):
         """Determines the next goal if needed, returns if the scaffolding should update"""
-        # TODO: Load from file
-        if len(self.sim_state.target_structure) == 0:
-            return False
-
-        if self.check_is_finished():
-            return False
-
-
-        pass
-
-    def check_is_finished(self)-> bool:
-        # TODO: Load from file
-        pass
+        self.goal_stack = self.goal_stacks[self.index]
+        next_goal = self.goal_stack[-1]
+        if next_goal.coord == self.cache and next_goal.type.is_pick():
+            if next_goal.type.is_build():
+                self.sim_state.b_blocks.add(self.cache)
+            else:
+                self.sim_state.s_blocks[self.cache] = ScaffoldState()
 
     def update_scaffolding(self, r_coord: Coordinate, robot: BuilderState):
-        # TODO: Load from file
-        pass
+        for coord, block in self.sim_state.s_blocks.items():
+            block.instruction = SInstruction.NONE
+        instructions = self.sinstructions[self.index]
+        for coord, instruction in instructions:
+            self.sim_state.s_blocks[coord].instruction = instruction
+
+    def __deepcopy__(self, memo):
+        # TODO: Maybe make special copy method for strategies?
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        result.seed = deepcopy(self.seed, memo)
+        result.cache = deepcopy(self.seed, memo)
+        result.sim_state = deepcopy(self.sim_state, memo)
+        result.goal_stack = deepcopy(self.goal_stack, memo)
+
+        result.finished = deepcopy(self.finished, memo)
+        result.min_y = deepcopy(self.min_y, memo)
+        result.min_x = deepcopy(self.min_x, memo)
+        return result
+

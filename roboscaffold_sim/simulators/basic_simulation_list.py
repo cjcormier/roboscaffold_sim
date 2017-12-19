@@ -75,15 +75,12 @@ class BasicSimulationList:
     def save(self, file: TextIOWrapper):
         struct = self.states[0].sim_state.target_structure
         file.write(' '.join(str(coord) for coord in struct)+'\n')
-        file.write(str(self.states[0].strategy.seed))
-        file.write(' ')
-        file.write(str(self.states[0].strategy.cache))
-        file.write('\n')
 
         prev_blocks = dict()
         for i, state in enumerate(self.states):
             s_blocks = state.sim_state.s_blocks
             if self.check_block_update(prev_blocks, s_blocks):
+                file.write(str(i)+' goals:')
                 for goal in state.strategy.goal_stack:
                     file.write(f' {goal.coord}:{goal.type.name}')
                 file.write('\n')
@@ -92,7 +89,6 @@ class BasicSimulationList:
                     if s_block.instruction is not SInstruction.NONE:
                         file.write(f' {coord}:{s_block.instruction.name}')
                 file.write('\n')
-                file.write(str(i)+' goals:')
             prev_blocks = s_blocks
         pass
 

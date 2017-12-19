@@ -84,7 +84,7 @@ class LoadCreator(tk.Frame):
     def load_run(self):
         strat = LoadStrat
         sim = BasicSimulation.create_with_target_structure([Coordinate(0, 0)], strat)
-        file_name = self.load_box.get('1.0', 'end')[:-1]
+        file_name = self.load_box.get('1.0', 'end').strip('\n')
         sim.strategy.load(file_name)
         player = BasicPlayer(self.winfo_toplevel(), sim)
         player.grid()

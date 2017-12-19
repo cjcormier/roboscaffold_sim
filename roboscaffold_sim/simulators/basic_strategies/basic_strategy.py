@@ -16,7 +16,7 @@ class BasicStrategy:
         self.min_x = 0
 
     @abc.abstractmethod
-    def update(self, robo_coord, robot) -> bool:
+    def update(self, robo_coord: Coordinate, robot: BuilderState) -> bool:
         pass
 
     @abc.abstractmethod

@@ -47,7 +47,7 @@ class SpineStrat(BasicStrategy):
             target = [coord + offset for coord in target]
         return target
 
-    def update(self, robo_coord, robot) -> bool:
+    def update(self, robo_coord: Coordinate, robot: BuilderState) -> bool:
         goal_finished = self.check_for_finished_goals(robot)
         if goal_finished:
             if self.determine_new_goals(robo_coord, robot):

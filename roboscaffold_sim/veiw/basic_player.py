@@ -70,6 +70,6 @@ class BasicPlayer(tk.Frame):
         self.board.draw_sim(self.states.states[self.state_controls.current_state-1])
 
     def save(self):
-        file_name = self.save_text.get('1.0', 'end')
+        file_name = self.save_text.get('1.0', 'end').strip('\n')
         with open(file_name, 'w') as file:
             self.states.save(file)
