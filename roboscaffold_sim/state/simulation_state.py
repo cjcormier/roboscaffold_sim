@@ -41,5 +41,4 @@ class SimulationState:
         if len(self.robots) != 1:
             ValueError('this method requires exactly one robot in the state')
 
-        for coord, robot in self.robots.items():
-            return coord, robot
+        return self.robots.items().__iter__().__next__()

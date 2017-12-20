@@ -14,24 +14,23 @@ def max_structs(dimension):
     outer_size = 2**(dimension**2)
     inner_size = 2**(inner_dim**2)
 
-    max_s = outer_size - inner_size
-    return max_s
+    return outer_size - inner_size
 
 
 def create_struct(dimension, n):
-    struct = list()
+    structure = list()
     inner_size = 2**((dimension-1)**2)
-    add_inner_struct(dimension, n % inner_size, struct)
-    add_outer_struct(dimension, n // inner_size, struct)
-    return struct
+    add_inner_struct(dimension, n % inner_size, structure)
+    add_outer_struct(dimension, n // inner_size, structure)
+    return structure
 
 
-def add_inner_struct(dimension, n, struct):
+def add_inner_struct(dimension, n, structure):
     # print(f'inner {n}')
     for y in range(dimension-1):
         for x in range(dimension-1):
             if n % 2:
-                struct.append(Coordinate(x+1, y+1))
+                structure.append(Coordinate(x + 1, y + 1))
             n //= 2
             if n == 0:
                 return
@@ -40,12 +39,12 @@ def add_inner_struct(dimension, n, struct):
     raise Exception(f'n should be 0 and function should have returned by now but is {n}')
 
 
-def add_outer_struct(dimension, n, struct):
+def add_outer_struct(dimension, n, structure):
     # print(f'outer {n}')
     for x in range(dimension-1):
         if n % 2:
             # print(f'outer x hit {x+1} at {n}')
-            struct.append(Coordinate(x+1, 0))
+            structure.append(Coordinate(x + 1, 0))
         n //= 2
         if n == 0:
             break
@@ -54,7 +53,7 @@ def add_outer_struct(dimension, n, struct):
     for y in range(dimension-1):
         if n % 2:
             # print(f'outer y hit {y+1} at {n}')
-            struct.append(Coordinate(0, y+1))
+            structure.append(Coordinate(0, y + 1))
         n //= 2
         if n == 0:
             break
@@ -63,46 +62,55 @@ def add_outer_struct(dimension, n, struct):
     if n not in [0, 1]:
         raise Exception('n should be 0 or 1')
     elif n:
-        struct.append(Coordinate(0, 0))
+        structure.append(Coordinate(0, 0))
 
 
 if __name__ == '__main__':
-    dimension = 5
-    max_s = max_structs(dimension)
+    dim = 4
+    max_s = max_structs(dim)
     print(max_s)
     start_time = time.time()
 
     exceptions = 0
     j = 0
-    with open(f'{dimension}_grid_result.csv', 'w') as file:
+    with open(f'{dim}_grid_result.csv', 'w') as file:
         file.write('index,spine scaffolding,spine time,offset scaffolding,offset time,'
                    'centroid scaffolding,centroid time\n')
         s = 0
-        structs = set()
+        print_cycle = 50000
+        c = 0
         while j < max_s:
             j += 1
-            struct = create_struct(dimension, j)
+            struct = create_struct(dim, j)
             try:
                 results_spine = BasicSimulationAnalysis.analyze_sim(struct, SpineStrat)
                 results_offset = BasicSimulationAnalysis.analyze_sim(struct, OffsetSpineStrat)
                 results_centroid = BasicSimulationAnalysis.analyze_sim(struct, CentroidOffsetSpineStrat)
 
-                file.write(f'{j},{results_spine[0]},{results_spine[1]},'
-                           f'{results_offset[0]},{results_offset[1]},'
-                           f'{results_centroid[0]},{results_centroid[1]}\n')
-                s += 1
+                if results_spine[1] < results_offset[1] and results_spine[1] < results_centroid[1]:
+                    print(f's was fastest for {j} at {dim} '
+                          f'|{results_spine[1]}|{results_centroid[1]}|{results_offset[1]}|')
+                    c += 1
 
+
+                # if results_centroid[1] > results_offset[1]:
+                #     print(f'c is slower for {j} at {dim} '
+                #           f'|{results_centroid[1]}|{results_offset[1]}|')
+                #     c += 1
+
+                s += 1
             except TargetError as e:
                 exceptions += 1
-            if s % 10000 == 0:
+            if j % print_cycle == 0:
                 time_elapsed = time.time() - start_time
                 percentage = j/max_s
                 time_est = time_elapsed/percentage
                 time_remaining = time_est-time_elapsed
 
                 print(f'{percentage:.2%} {j-exceptions}/{j} {time_elapsed:.0f}s '
-                      f'{((j-exceptions)/j):.2%} {(s/10000):.2%} {int(time_est)}s '
+                      f'{((j-exceptions)/j):.2%} {(s/print_cycle):.2%} {int(time_est)}s '
                       f'{int(time_remaining)}s')
                 s = 0
     end_time = time.time()
-    print(f'{end_time-start_time:.0f}s')
+    print(f'check was true in  {c} cases -> {c/(j-exceptions):.2%} of the valid runs')
+    print(f'{end_time-start_time:.0f}s {((j-exceptions)/j):.2%}')

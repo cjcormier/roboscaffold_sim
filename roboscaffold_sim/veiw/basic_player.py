@@ -7,7 +7,7 @@ from roboscaffold_sim.veiw.state_controls import StateControls
 
 
 class BasicPlayer(tk.Frame):
-    def __init__(self, parent, starting_state: BasicSimulation, load_to=1000,
+    def __init__(self, parent, starting_state: BasicSimulation, back_context=None, back_name='back', load_to=1000,
                  *args, **kwargs) -> None:
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
@@ -19,16 +19,21 @@ class BasicPlayer(tk.Frame):
         self.board.grid(row=0, column=0, rowspan=4)
         self.board.draw_grid()
 
-        self.state_controls = StateControls(self,
-                                            updater=self.get_updater(),
-                                            loader=self.get_loader()
-                                            )
-        self.state_controls.grid(row=2, column=1, sticky="s")
+        if back_context is not None:
+            self.back_context = back_context
+            self.create_button = tk.Button(self, text=back_name, command=self.back)
+            self.create_button.grid(row=0, column=1, sticky='we', padx=3, pady=3)
 
         self.stat_text = tk.StringVar()
         self.stat_label = tk.Label(self, textvariable=self.stat_text)
         self.stat_label.grid(row=1, column=1, sticky='w')
         self.update_statistics()
+
+        self.state_controls = StateControls(self,
+                                            updater=self.get_updater(),
+                                            loader=self.get_loader()
+                                            )
+        self.state_controls.grid(row=2, column=1, sticky="s")
 
         self.save_frame = tk.Frame(self)
         self.save_frame.grid(row=3, column=1)
@@ -73,3 +78,10 @@ class BasicPlayer(tk.Frame):
         file_name = self.save_text.get('1.0', 'end').strip('\n')
         with open(file_name, 'w') as file:
             self.states.save(file)
+
+    def back(self):
+        target = self.states.states[0].sim_state.target_structure
+        creator = self.back_context(self.winfo_toplevel(), target=target)
+        creator.grid()
+        creator.winfo_toplevel().title("RoboScaffold Sim")
+        self.destroy()

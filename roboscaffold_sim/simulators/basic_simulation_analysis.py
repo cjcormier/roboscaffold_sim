@@ -27,11 +27,8 @@ class BasicSimulationAnalysis:
 
     def analyze(self) -> Tuple[int, int]:
         while True:
-            if self._working_state.finished:
+            if self._working_state.finished or self.update():
                 break
-            else:
-                if self.update():
-                    break
             self.analyze_step()
         return self._s_blocks, self._time
 
