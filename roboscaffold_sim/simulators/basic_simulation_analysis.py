@@ -19,7 +19,7 @@ class BasicSimulationAnalysis:
 
     def update(self) -> Optional[Exception]:
         try:
-            if not self._working_state.finished():
+            if not self._working_state.finished:
                 self._working_state.update()
         except Exception as e:
             traceback.print_exception(etype=type(e), value=e, tb=e.__traceback__)
@@ -27,7 +27,7 @@ class BasicSimulationAnalysis:
 
     def analyze(self) -> Tuple[int, int]:
         while True:
-            if self._working_state.finished():
+            if self._working_state.finished:
                 break
             else:
                 if self.update():

@@ -67,7 +67,7 @@ def add_outer_struct(dimension, n, struct):
 
 
 if __name__ == '__main__':
-    dimension = 4
+    dimension = 5
     max_s = max_structs(dimension)
     print(max_s)
     start_time = time.time()
