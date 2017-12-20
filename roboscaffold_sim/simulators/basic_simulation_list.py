@@ -32,7 +32,7 @@ class BasicSimulationList:
 
     def update(self) -> Optional[Exception]:
         try:
-            if not self._working_state.finished():
+            if not self._working_state.finished:
                 self._working_state.update()
                 self.states.append(copy.deepcopy(self._working_state))
         except Exception as e:
@@ -41,7 +41,7 @@ class BasicSimulationList:
 
     def update_loop(self, max_rounds: int = 1000):
         for _ in range(max_rounds):
-            if self._working_state.finished() or self.update():
+            if self._working_state.finished or self.update():
                 break
 
     def analyze(self) -> Tuple[int, int, int]:

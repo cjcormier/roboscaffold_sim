@@ -41,7 +41,7 @@ class BasicPlayer(tk.Frame):
 
         self.board.draw_sim(self.states.states[0])
         self.state_controls.max_state = len(self.states.states)
-        self.state_controls.finished = self.states.states[-1].finished()
+        self.state_controls.finished = self.states.states[-1].finished
 
     def get_updater(self):
         def fun(frame):

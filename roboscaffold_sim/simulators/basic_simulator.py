@@ -104,5 +104,8 @@ class BasicSimulation:
         del self.sim_state.robots[robo_coord]
         self.sim_state.robots[new_coords] = robot
 
+    @property
     def finished(self):
         return self.strategy.finished
+
+
