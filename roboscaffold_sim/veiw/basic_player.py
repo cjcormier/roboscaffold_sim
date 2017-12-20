@@ -51,7 +51,7 @@ class BasicPlayer(tk.Frame):
     def get_loader(self):
         def fun(to_load):
             self.states.update_loop(to_load)
-            self.state_controls.finished = self.states.states[-1].finished()
+            self.state_controls.finished = self.states.states[-1].finished
             self.state_controls.max_state = len(self.states.states)
             self.update_statistics()
         return fun
