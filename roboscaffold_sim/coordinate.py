@@ -90,6 +90,7 @@ Up = Coordinate(0, -1)
 Right = Coordinate(1, 0)
 Down = Coordinate(0, 1)
 Left = Coordinate(-1, 0)
+Origin = Coordinate(0, 0)
 
 coord_change = {
     Direction.NORTH: Up,

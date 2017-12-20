@@ -1,7 +1,6 @@
 import copy
 import traceback
-from io import TextIOWrapper
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, TextIO
 
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 from roboscaffold_sim.state.builder_state import HeldBlock
@@ -72,7 +71,7 @@ class BasicSimulationList:
         self._last_check = last_check
         return self._s_blocks, self._b_blocks, self._last_check
 
-    def save(self, file: TextIOWrapper):
+    def save(self, file: TextIO):
         struct = self.states[0].sim_state.target_structure
         file.write(' '.join(str(coord) for coord in struct)+'\n')
 

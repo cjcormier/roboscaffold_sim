@@ -1,8 +1,7 @@
 from copy import deepcopy, copy
-from io import TextIOWrapper
-from typing import Tuple, List
+from typing import Tuple, List, TextIO, Optional
 
-from roboscaffold_sim.coordinate import Coordinate, CoordinateList
+from roboscaffold_sim.coordinate import Coordinate, CoordinateList, Origin
 from roboscaffold_sim.goal_type import GoalType as GType, GoalType
 from roboscaffold_sim.simulators.basic_strategies.basic_strategy import \
     BasicStrategy
@@ -22,11 +21,20 @@ class LoadStrat(BasicStrategy):
         self.goal_stacks: List[Goals] = []
         self.sinstructions: List[List[Tuple[Coordinate, SInstruction]]] = []
 
+    @staticmethod
+    def create_goal(string: str) -> Goal:
+        coord, gtype = string.split(':')
+        coord = Coordinate.from_string(coord)
+        gtype = GoalType[gtype]
+        return Goal(coord, gtype, Origin, Origin)
+
+    @staticmethod
+    def configure_target(target: CoordinateList, allow_offset: bool = True) -> CoordinateList:
+        return target
+
     def load(self, file_name: str):
         with open(file_name, 'r') as file:
             self.sim_state.target_structure = self.load_coords(file)
-            self.min_x = min(min(coord.x for coord in self.sim_state.target_structure), 0)
-            self.min_y = min(min(coord.y for coord in self.sim_state.target_structure), 0)
             line = file.readline()
             while line != '':
                 goals = line.strip('0123456789 goals:\n').split(' ')
@@ -41,13 +49,6 @@ class LoadStrat(BasicStrategy):
             self.update(*self.sim_state.get_single_robot())
 
     @staticmethod
-    def create_goal(string: str) -> Goal:
-        coord, gtype = string.split(':')
-        coord = Coordinate.from_string(coord)
-        gtype = GoalType[gtype]
-        return Goal(coord, gtype, None, None)
-
-    @staticmethod
     def create_scaffold(string: str) -> Tuple[Coordinate, SInstruction]:
         coord, stype = string.split(':')
         coord = Coordinate.from_string(coord)
@@ -55,7 +56,7 @@ class LoadStrat(BasicStrategy):
         return coord, stype
 
     @staticmethod
-    def load_coords(file: TextIOWrapper) -> CoordinateList:
+    def load_coords(file: TextIO) -> CoordinateList:
         coords: CoordinateList = []
         line = file.readline()
         for block in line.split():
@@ -124,3 +125,6 @@ class LoadStrat(BasicStrategy):
 
         result.finished = self.finished
         return result
+
+    def get_next_unfinished_block(self) -> Optional[Coordinate]:
+        pass
