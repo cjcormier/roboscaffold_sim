@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 from io import TextIOWrapper
 from typing import Tuple, List
 
@@ -117,13 +117,10 @@ class LoadStrat(BasicStrategy):
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
-        result.seed = deepcopy(self.seed, memo)
-        result.cache = deepcopy(self.seed, memo)
+        result.seed = copy(self.seed)
+        result.cache = copy(self.seed)
         result.sim_state = deepcopy(self.sim_state, memo)
         result.goal_stack = deepcopy(self.goal_stack, memo)
 
-        result.finished = deepcopy(self.finished, memo)
-        result.min_y = deepcopy(self.min_y, memo)
-        result.min_x = deepcopy(self.min_x, memo)
+        result.finished = self.finished
         return result
-

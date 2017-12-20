@@ -13,8 +13,6 @@ Dir = Direction
 class CentroidFlipSpineStrat(CentroidOffsetSpineStrat):
     def __init__(self, sim_state: SimulationState) -> None:
         OffsetSpineStrat.__init__(self, sim_state)
-        self.min_y = min(coord.y for coord in sim_state.target_structure)
-        self.min_x = min(coord.x for coord in sim_state.target_structure)
 
     @staticmethod
     def target_sort_key_tuple(coord) -> Tuple[int, ...]:

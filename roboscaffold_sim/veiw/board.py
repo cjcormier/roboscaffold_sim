@@ -138,8 +138,9 @@ class Board(tk.Frame):
 
     def draw_sim(self, sim: BasicSimulation):
         self.canvas.delete('drawn')
-        self.vert_offset = sim.strategy.min_y
-        self.horz_offset = sim.strategy.min_x
+        struct = sim.sim_state.target_structure
+        self.vert_offset = min(min(coord.y for coord in struct), 0)
+        self.horz_offset = min(min(coord.x for coord in struct), 0)
         for tooltip in self.tooltips:
             tooltip.hide()
         self.draw_s_blocks(sim.sim_state.s_blocks)

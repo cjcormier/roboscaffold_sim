@@ -10,7 +10,6 @@ Dir = Direction
 class CentroidOffsetSpineStrat(OffsetSpineStrat):
     def __init__(self, sim_state: SimulationState) -> None:
         OffsetSpineStrat.__init__(self, sim_state)
-        self.min_y = min(coord.y for coord in sim_state.target_structure)
 
     @staticmethod
     def configure_target(target: CoordinateList, allow_offset: bool = True) \

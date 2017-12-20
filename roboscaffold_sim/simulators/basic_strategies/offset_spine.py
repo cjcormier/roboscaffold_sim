@@ -13,7 +13,6 @@ Dir = Direction
 class OffsetSpineStrat(SpineStrat):
     def __init__(self, sim_state: SimulationState) -> None:
         SpineStrat.__init__(self, sim_state)
-        self.min_y = min(coord.y for coord in sim_state.target_structure)
 
     @staticmethod
     def target_sort_key_tuple(coord) -> Tuple[int, ...]:
