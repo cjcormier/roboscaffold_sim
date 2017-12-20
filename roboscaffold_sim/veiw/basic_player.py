@@ -11,6 +11,7 @@ class BasicPlayer(tk.Frame):
                  *args, **kwargs) -> None:
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
+        self.winfo_toplevel().title("RoboScaffold Sim")
 
         self.states = BasicSimulationList(starting_state)
         self.states.update_loop(load_to-1)

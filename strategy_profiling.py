@@ -88,10 +88,9 @@ if __name__ == '__main__':
                 results_centroid = BasicSimulationAnalysis.analyze_sim(struct, CentroidOffsetSpineStrat)
 
                 if results_spine[1] < results_offset[1] and results_spine[1] < results_centroid[1]:
-                    print(f's was fastest for {j} at {dim} '
+                    print(f'check was true for {j} at {dim} '
                           f'|{results_spine[1]}|{results_centroid[1]}|{results_offset[1]}|')
                     c += 1
-
 
                 # if results_centroid[1] > results_offset[1]:
                 #     print(f'c is slower for {j} at {dim} '

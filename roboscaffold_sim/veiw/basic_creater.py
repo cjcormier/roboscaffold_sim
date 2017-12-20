@@ -1,6 +1,7 @@
 import tkinter as tk
 
 from roboscaffold_sim.simulators.basic_strategies.load_strat import LoadStrat
+from roboscaffold_sim.simulators.basic_strategies.longest_spine import LongestSpineStrat
 from strategy_profiling import create_struct
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 from roboscaffold_sim.structures.basic_structures import structures
@@ -16,7 +17,8 @@ strategies = {
     'spine': SpineStrat,
     'offset_spine': OffsetSpineStrat,
     'centroid_spine': CentroidOffsetSpineStrat,
-    'centroid_flip_spine': CentroidFlipSpineStrat
+    'centroid_flip_spine': CentroidFlipSpineStrat,
+    'longest spine': LongestSpineStrat
 }
 
 
@@ -180,6 +182,9 @@ class BasicCreator(tk.Frame):
         self.start = tk.Button(self, text='Start', command=self.start)
         self.start.grid(row=2, column=1)
 
+        self.start = tk.Button(self, text='Start in new window', command=self.start_new)
+        self.start.grid(row=3, column=1)
+
         self.struct = []
         if target is not None:
             self.set_struct(target)
@@ -194,8 +199,14 @@ class BasicCreator(tk.Frame):
         sim = BasicSimulation.create_with_target_structure(self.struct, strat)
         player = BasicPlayer(self.parent, sim, BasicCreator, 'Create')
         player.grid()
-        player.winfo_toplevel().title("RoboScaffold Sim")
         self.destroy()
+
+    def start_new(self):
+        popup = tk.Toplevel()
+        strat = strategies[self.strat_chooser.strategy.get()]
+        sim = BasicSimulation.create_with_target_structure(self.struct, strat)
+        player = BasicPlayer(popup, sim, BasicCreator, 'Create')
+        player.grid()
 
 
 if __name__ == '__main__':
