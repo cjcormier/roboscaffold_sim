@@ -3,6 +3,7 @@ import tkinter as tk
 from roboscaffold_sim.simulators.basic_simulation_list import BasicSimulationList
 from roboscaffold_sim.simulators.basic_strategies.load_strat import LoadStrat
 from roboscaffold_sim.simulators.basic_strategies.longest_spine import LongestSpineStrat
+from roboscaffold_sim.simulators.load_save import load_coords
 from strategy_profiling import create_struct
 from roboscaffold_sim.simulators.basic_simulator import BasicSimulation
 from roboscaffold_sim.structures.basic_structures import structures
@@ -70,7 +71,7 @@ class LoadCreator(tk.Frame):
     def load(self):
         file_name = self.load_box.get('1.0', 'end')[:-1]
         with open(file_name) as file:
-            struct = LoadStrat.load_coords(file)
+            struct = load_coords(file)
             min_x = min(coord.x for coord in struct)
             min_y = min(coord.y for coord in struct)
             offset = Coordinate(-min_x, -min_y)
@@ -82,14 +83,14 @@ class LoadCreator(tk.Frame):
         sim = BasicSimulation.create_with_target_structure([Coordinate(0, 0)], strat)
         file_name = self.load_box.get('1.0', 'end').strip('\n')
         sim.strategy.load(file_name)
-        player = BasicPlayer(self.winfo_toplevel(), sim, BasicCreator)
+        player = BasicPlayer(self.winfo_toplevel(), sim, BasicCreator, 'Create')
         player.grid()
         player.winfo_toplevel().title("RoboScaffold Sim")
         self.root_frame.destroy()
 
 
 class TargetCreator(tk.Frame):
-    def __init__(self, parent, struct_callback, *args, **kwargs) -> None:
+    def __init__(self, parent, struct_callback, root,*args, **kwargs) -> None:
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.struct_callback = struct_callback
 
@@ -112,7 +113,7 @@ class TargetCreator(tk.Frame):
             structure_button.grid(row=1, column=i)
             i += 1
 
-        self.load_creator = LoadCreator(self, struct_callback, parent)
+        self.load_creator = LoadCreator(self, struct_callback, root)
         self.load_creator.grid(row=4, column=0, sticky='w')
 
         self.num_creator = NumCreator(self, struct_callback)
@@ -181,9 +182,9 @@ class RunOptions(tk.Frame):
     def start(self):
         strat = strategies[self.creator.strat_chooser.strategy.get()]
         sim = BasicSimulation.create_with_target_structure(self.creator.struct, strat)
-        player = BasicPlayer(self.parent, sim, BasicCreator, 'Create')
+        player = BasicPlayer(self.winfo_toplevel(), sim, BasicCreator, 'Create')
         player.grid()
-        self.parent.destroy()
+        self.creator.destroy()
 
     def start_new(self):
         popup = tk.Toplevel()
@@ -217,7 +218,7 @@ class BasicCreator(tk.Frame):
         self.sidebar = tk.Frame(self)
         self.sidebar.grid(row=0, column=1, sticky='ns')
 
-        self.target_creator = TargetCreator(self.sidebar, self.set_struct)
+        self.target_creator = TargetCreator(self.sidebar, self.set_struct, self)
         self.target_creator.grid(row=0, sticky="nw")
 
         self.strat_chooser = StratChooser(self.sidebar)

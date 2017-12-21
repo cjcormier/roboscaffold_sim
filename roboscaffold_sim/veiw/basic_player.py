@@ -7,7 +7,7 @@ from roboscaffold_sim.veiw.state_controls import StateControls
 
 
 class BasicPlayer(tk.Frame):
-    def __init__(self, parent, starting_state: BasicSimulation, back_context=None, back_name='back', load_to=1000,
+    def __init__(self, parent, starting_state: BasicSimulation, back_context=None, back_name='Back', load_to=1000,
                  *args, **kwargs) -> None:
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
@@ -23,7 +23,7 @@ class BasicPlayer(tk.Frame):
         if back_context is not None:
             self.back_context = back_context
             self.create_button = tk.Button(self, text=back_name, command=self.back)
-            self.create_button.grid(row=0, column=1, sticky='we', padx=3, pady=3)
+            self.create_button.grid(row=0, column=1, sticky='we')
 
         self.stat_text = tk.StringVar()
         self.stat_label = tk.Label(self, textvariable=self.stat_text)

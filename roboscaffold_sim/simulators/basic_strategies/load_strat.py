@@ -5,6 +5,7 @@ from roboscaffold_sim.coordinate import Coordinate, CoordinateList, Origin
 from roboscaffold_sim.goal_type import GoalType as GType, GoalType
 from roboscaffold_sim.simulators.basic_strategies.basic_strategy import \
     BasicStrategy
+from roboscaffold_sim.simulators.load_save import create_goal, create_scaffold, load_coords, load
 from roboscaffold_sim.state.builder_state import BuilderState, HeldBlock
 from roboscaffold_sim.state.scaffolding_state import ScaffoldState, SInstruction
 from roboscaffold_sim.state.simulation_state import SimulationState, Goal, Goals
@@ -22,46 +23,12 @@ class LoadStrat(BasicStrategy):
         self.sinstructions: List[List[Tuple[Coordinate, SInstruction]]] = []
 
     @staticmethod
-    def create_goal(string: str) -> Goal:
-        coord, gtype = string.split(':')
-        coord = Coordinate.from_string(coord)
-        gtype = GoalType[gtype]
-        return Goal(coord, gtype, Origin, Origin)
-
-    @staticmethod
     def configure_target(target: CoordinateList, allow_offset: bool = True) -> CoordinateList:
         return target
 
     def load(self, file_name: str):
-        with open(file_name, 'r') as file:
-            self.sim_state.target_structure = self.load_coords(file)
-            line = file.readline()
-            while line != '':
-                goals = line.strip('0123456789 goals:\n').split(' ')
-                goals = [self.create_goal(goal) for goal in goals]
-                self.goal_stacks.append(goals)
-                line = file.readline()
-                scaffolds = line.strip('0123456789 scafolds:\n').split(' ')
-                scaffolds = [self.create_scaffold(s) for s in scaffolds]
-                self.sinstructions.append(scaffolds)
-
-                line = file.readline()
-            self.update(*self.sim_state.get_single_robot())
-
-    @staticmethod
-    def create_scaffold(string: str) -> Tuple[Coordinate, SInstruction]:
-        coord, stype = string.split(':')
-        coord = Coordinate.from_string(coord)
-        stype = SInstruction[stype]
-        return coord, stype
-
-    @staticmethod
-    def load_coords(file: TextIO) -> CoordinateList:
-        coords: CoordinateList = []
-        line = file.readline()
-        for block in line.split():
-            coords.append(Coordinate.from_string(block))
-        return coords
+        self.sim_state.target_structure, self.goal_stacks, self.sinstructions = load(file_name)
+        self.update(*self.sim_state.get_single_robot())
 
     def update(self, robo_coord: Coordinate, robot: BuilderState) -> bool:
         goal_finished = self.check_for_finished_goals(robot)
