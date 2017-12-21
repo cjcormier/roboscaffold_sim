@@ -5,6 +5,7 @@ from roboscaffold_sim.errors import TargetError
 from roboscaffold_sim.simulators.basic_simulation_analysis import BasicSimulationAnalysis
 from roboscaffold_sim.simulators.basic_strategies.centroid_offset_spine import \
     CentroidOffsetSpineStrat
+from roboscaffold_sim.simulators.basic_strategies.longest_spine import LongestSpineStrat
 from roboscaffold_sim.simulators.basic_strategies.offset_spine import OffsetSpineStrat
 from roboscaffold_sim.simulators.basic_strategies.spine_strat import SpineStrat
 
@@ -78,24 +79,20 @@ if __name__ == '__main__':
                    'centroid scaffolding,centroid time\n')
         s = 0
         print_cycle = 50000
-        c = 0
+        c_r = [0]*4
+        c_s = [0]*4
         while j < max_s:
             j += 1
             struct = create_struct(dim, j)
             try:
-                results_spine = BasicSimulationAnalysis.analyze_sim(struct, SpineStrat)
-                results_offset = BasicSimulationAnalysis.analyze_sim(struct, OffsetSpineStrat)
-                results_centroid = BasicSimulationAnalysis.analyze_sim(struct, CentroidOffsetSpineStrat)
+                spine = BasicSimulationAnalysis.analyze_sim(struct, SpineStrat)
+                offset = BasicSimulationAnalysis.analyze_sim(struct, OffsetSpineStrat)
+                centroid = BasicSimulationAnalysis.analyze_sim(struct, CentroidOffsetSpineStrat)
+                longest = BasicSimulationAnalysis.analyze_sim(struct, LongestSpineStrat)
 
-                if results_spine[1] < results_offset[1] and results_spine[1] < results_centroid[1]:
-                    print(f'check was true for {j} at {dim} '
-                          f'|{results_spine[1]}|{results_centroid[1]}|{results_offset[1]}|')
-                    c += 1
-
-                # if results_centroid[1] > results_offset[1]:
-                #     print(f'c is slower for {j} at {dim} '
-                #           f'|{results_centroid[1]}|{results_offset[1]}|')
-                #     c += 1
+                results = [spine, offset, centroid, longest]
+                c_r[min(range(4), key=lambda i:results[i][0])] += 1
+                c_s[min(range(4), key=lambda i:results[i][1])] += 1
 
                 s += 1
             except TargetError as e:
@@ -106,10 +103,12 @@ if __name__ == '__main__':
                 time_est = time_elapsed/percentage
                 time_remaining = time_est-time_elapsed
 
-                print(f'{percentage:.2%} {j-exceptions}/{j} {time_elapsed:.0f}s '
-                      f'{((j-exceptions)/j):.2%} {(s/print_cycle):.2%} {int(time_est)}s '
+                print(f'{percentage:.2%} {j-exceptions}/{j} {((j-exceptions)/j):.2%} '
+                      f'{(s/print_cycle):.2%} {time_elapsed:.0f}s {int(time_est)}s '
                       f'{int(time_remaining)}s')
                 s = 0
     end_time = time.time()
-    print(f'check was true in  {c} cases -> {c/(j-exceptions):.2%} of the valid runs')
+    print(f'robot_moves: '+'|'.join(str(r) for r in c_r))
+    print(f'scaffold updates: '+'|'.join(str(s) for s in c_s))
+    # print(f'check was true in  {c} cases -> {c/(j-exceptions):.2%} of the valid runs')
     print(f'{end_time-start_time:.0f}s {((j-exceptions)/j):.2%}')

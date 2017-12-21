@@ -39,6 +39,12 @@ class BasicAnalyzerSimulation(BasicSimulation):
         sim.strategy.cache = Down
         return sim
 
+    def update(self):
+        robo_coord, robot = self.get_single_robot()
+        self.strategy.update(robo_coord, robot)
+        if not self.strategy.finished:
+            self.update_robots()
+
     def update_robots(self):
         coord, robot = self.get_single_robot()
         goal = self.strategy.goal_stack[-1]
