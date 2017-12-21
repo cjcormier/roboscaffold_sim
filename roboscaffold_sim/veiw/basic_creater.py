@@ -1,5 +1,6 @@
 import tkinter as tk
 
+from roboscaffold_sim.simulators.basic_simulation_list import BasicSimulationList
 from roboscaffold_sim.simulators.basic_strategies.load_strat import LoadStrat
 from roboscaffold_sim.simulators.basic_strategies.longest_spine import LongestSpineStrat
 from strategy_profiling import create_struct
@@ -24,9 +25,7 @@ strategies = {
 
 class NumCreator(tk.Frame):
     def __init__(self, parent, struct_callback, *args, **kwargs) -> None:
-        tk.Frame.__init__(self, parent,
-                          relief='raised', bd=2, padx=3, pady=3,
-                          *args, **kwargs)
+        tk.Frame.__init__(self, parent, relief='raised', bd=2, *args, **kwargs)
 
         self.callback = struct_callback
 
@@ -58,16 +57,14 @@ class NumCreator(tk.Frame):
 
 class LoadCreator(tk.Frame):
     def __init__(self, parent, struct_callback, root_frame, *args, **kwargs) -> None:
-        tk.Frame.__init__(self, parent,
-                          relief='raised', bd=2, padx=3, pady=3,
-                          *args, **kwargs)
+        tk.Frame.__init__(self, parent, relief='raised', bd=2, *args, **kwargs)
         self.root_frame = root_frame
         self.load_box = tk.Text(self, width=30, height=1)
         self.load_box.grid(row=0, column=0, columnspan=2)
         self.load = tk.Button(self, text="Load Structure", command=self.load)
-        self.load.grid(row=1, column=0, sticky='sw', padx=3, pady=3)
+        self.load.grid(row=1, column=0, sticky='sw')
         self.load_run = tk.Button(self, text="Load Run", command=self.load_run)
-        self.load_run.grid(row=1, column=1, sticky='sw', padx=3, pady=3)
+        self.load_run.grid(row=1, column=1, sticky='sw')
         self.callback = struct_callback
 
     def load(self):
@@ -100,10 +97,10 @@ class TargetCreator(tk.Frame):
         self.label.grid(row=0, column=0, sticky='w')
 
         self.draw = tk.Button(self, text="Draw Structure", command=self.draw_callback)
-        self.draw.grid(row=1, column=0, sticky='sw', padx=3, pady=3)
+        self.draw.grid(row=1, column=0, sticky='w')
 
-        basic_frame = tk.Frame(self, relief='raised', bd=2, padx=3, pady=3,)
-        basic_frame.grid(row=3, column=0, columnspan=4, sticky='w', padx=3, pady=3)
+        basic_frame = tk.Frame(self, relief='raised', bd=2)
+        basic_frame.grid(row=3, column=0, columnspan=4, sticky='w')
 
         self.basic_label = tk.Label(basic_frame, text='Basic structures')
         self.basic_label.grid(row=0, column=0, sticky='we', columnspan=4)
@@ -116,10 +113,10 @@ class TargetCreator(tk.Frame):
             i += 1
 
         self.load_creator = LoadCreator(self, struct_callback, parent)
-        self.load_creator.grid(row=4, column=0)
+        self.load_creator.grid(row=4, column=0, sticky='w')
 
         self.num_creator = NumCreator(self, struct_callback)
-        self.num_creator.grid(row=5, column=0, sticky='sw', padx=3, pady=3)
+        self.num_creator.grid(row=5, column=0, sticky='w')
 
     @staticmethod
     def draw_callback():
@@ -162,6 +159,50 @@ class StratChooser(tk.Frame):
         self.language_picker.grid(row=3, column=0, sticky='w')
 
 
+class RunOptions(tk.Frame):
+    def __init__(self, parent, creator, *args, **kwargs) -> None:
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+        self.creator = creator
+
+        self.start = tk.Button(self, text='Start', command=self.start)
+        self.start.grid(row=0, column=0)
+
+        self.start_new = tk.Button(self, text='Start in new window', command=self.start_new)
+        self.start_new.grid(row=0, column=1)
+
+        self.save = tk.Button(self, text='save', command=self.save)
+        self.save.grid(row=2, column=0)
+        self.save_label = tk.Label(self, text='file name')
+        self.save_label.grid(row=1, column=0)
+        self.save_text = tk.Text(self, width=30, height=1)
+        self.save_text.grid(row=1, column=1)
+
+    def start(self):
+        strat = strategies[self.creator.strat_chooser.strategy.get()]
+        sim = BasicSimulation.create_with_target_structure(self.creator.struct, strat)
+        player = BasicPlayer(self.parent, sim, BasicCreator, 'Create')
+        player.grid()
+        self.parent.destroy()
+
+    def start_new(self):
+        popup = tk.Toplevel()
+        strat = strategies[self.creator.strat_chooser.strategy.get()]
+        sim = BasicSimulation.create_with_target_structure(self.creator.struct, strat)
+        player = BasicPlayer(popup, sim, BasicCreator, 'Create')
+        player.grid()
+
+    def save(self):
+        strat = strategies[self.creator.strat_chooser.strategy.get()]
+        sim = BasicSimulation.create_with_target_structure(self.creator.struct, strat)
+        states = BasicSimulationList(sim)
+        states.update_loop(-1)
+
+        file_name = self.save_text.get('1.0', 'end').strip('\n')
+        with open(file_name, 'w') as file:
+            states.save(file)
+
+
 class BasicCreator(tk.Frame):
     def __init__(self, parent, target=None, *args, **kwargs) -> None:
         tk.Frame.__init__(self, parent, *args, **kwargs)
@@ -170,20 +211,20 @@ class BasicCreator(tk.Frame):
         self.parent = parent
 
         self.board = Board(self)
-        self.board.grid(row=0, column=0, rowspan=4)
+        self.board.grid(row=0, column=0)
         self.board.draw_grid()
 
-        self.target_creator = TargetCreator(self, self.set_struct)
-        self.target_creator.grid(row=0, column=1, sticky="n")
+        self.sidebar = tk.Frame(self)
+        self.sidebar.grid(row=0, column=1, sticky='ns')
 
-        self.strat_chooser = StratChooser(self)
-        self.strat_chooser.grid(row=1, column=1, sticky="nw")
+        self.target_creator = TargetCreator(self.sidebar, self.set_struct)
+        self.target_creator.grid(row=0, sticky="nw")
 
-        self.start = tk.Button(self, text='Start', command=self.start)
-        self.start.grid(row=2, column=1)
+        self.strat_chooser = StratChooser(self.sidebar)
+        self.strat_chooser.grid(row=1, sticky="nw")
 
-        self.start = tk.Button(self, text='Start in new window', command=self.start_new)
-        self.start.grid(row=3, column=1)
+        self.run = RunOptions(self.sidebar, self)
+        self.run.grid(row=2, sticky='nw')
 
         self.struct = []
         if target is not None:
@@ -194,24 +235,10 @@ class BasicCreator(tk.Frame):
         self.board.canvas.delete('drawn')
         self.board.draw_b_blocks(struct)
 
-    def start(self):
-        strat = strategies[self.strat_chooser.strategy.get()]
-        sim = BasicSimulation.create_with_target_structure(self.struct, strat)
-        player = BasicPlayer(self.parent, sim, BasicCreator, 'Create')
-        player.grid()
-        self.destroy()
-
-    def start_new(self):
-        popup = tk.Toplevel()
-        strat = strategies[self.strat_chooser.strategy.get()]
-        sim = BasicSimulation.create_with_target_structure(self.struct, strat)
-        player = BasicPlayer(popup, sim, BasicCreator, 'Create')
-        player.grid()
-
 
 if __name__ == '__main__':
     root = tk.Tk()
-    creater = BasicCreator(root)
-    creater.winfo_toplevel().title("Create Structure")
-    creater.grid()
+    creator = BasicCreator(root)
+    creator.winfo_toplevel().title("Create Structure")
+    creator.grid()
     root.mainloop()

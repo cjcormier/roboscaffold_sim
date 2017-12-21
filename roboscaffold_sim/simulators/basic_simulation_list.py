@@ -39,6 +39,10 @@ class BasicSimulationList:
             return e
 
     def update_loop(self, max_rounds: int = 1000):
+        while max_rounds < 0:
+            if self._working_state.finished or self.update():
+                break
+
         for _ in range(max_rounds):
             if self._working_state.finished or self.update():
                 break
@@ -79,11 +83,11 @@ class BasicSimulationList:
         for i, state in enumerate(self.states):
             s_blocks = state.sim_state.s_blocks
             if self.check_block_update(prev_blocks, s_blocks):
-                file.write(str(i)+' goals:')
+                file.write('goals:')
                 for goal in state.strategy.goal_stack:
                     file.write(f' {goal.coord}:{goal.type.name}')
                 file.write('\n')
-                file.write(str(i)+' scaffolds:')
+                file.write('scaffolds:')
                 for coord, s_block in s_blocks.items():
                     if s_block.instruction is not SInstruction.NONE:
                         file.write(f' {coord}:{s_block.instruction.name}')
