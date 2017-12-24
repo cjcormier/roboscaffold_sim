@@ -22,7 +22,7 @@ class LongestSpineStrat(OffsetSpineStrat):
 
             centroid_y = sum(coord.y for coord in target) / len(target)
             centroid_y = int(centroid_y+0.5)
-
+            # to do use counter class
             for coord in target:
                 rows[coord.y-min_y] += 1
 
@@ -30,10 +30,10 @@ class LongestSpineStrat(OffsetSpineStrat):
             row_value = 0
             for i, value in enumerate(rows):
                 if value > row_value:
-                    row_indicies.append(i+min_y)
+                    row_indicies= [i+min_y]
                     row_value = value
                 elif value == row_value:
-                    row_indicies = [i+min_y]
+                    row_indicies.append(i+min_y)
 
             row_value = centroid_y - row_indicies[0]
             row = row_indicies[0]

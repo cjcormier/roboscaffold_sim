@@ -40,4 +40,6 @@ class BasicSimulationAnalysis:
             r_coord, r_state = self._working_state.get_single_robot()
             if g_coord.x != r_coord.x:
                 self._moves += abs(g_coord.y) + abs(r_coord.y) + abs(r_coord.x-g_coord.x)
+            else:
+                self._moves += abs(g_coord.y - r_coord.y)
         self._time += 1

@@ -22,7 +22,7 @@ def create_struct(dimension, n):
     structure = list()
     inner_size = 2**((dimension-1)**2)
     add_inner_struct(dimension, n % inner_size, structure)
-    add_outer_struct(dimension, n // inner_size, structure)
+    add_outer_struct(dimension, n // inner_size + 1, structure)
     return structure
 
 
@@ -67,20 +67,21 @@ def add_outer_struct(dimension, n, structure):
 
 
 if __name__ == '__main__':
-    dim = 5
+    dim = 3
     max_s = max_structs(dim)
     print(max_s)
     start_time = time.time()
 
     exceptions = 0
     prev_time = 0
-    j = 0
+    j = -1
+    ss=0
     with open(f'{dim}_grid_result.csv', 'w') as file:
         s = 0
-        print_cycle = 50000
+        print_cycle = 10000
         c_r = [0]*4
         c_s = [0]*4
-        while j < max_s:
+        while (j+1) < max_s:
             j += 1
             struct = create_struct(dim, j)
             try:
@@ -92,17 +93,17 @@ if __name__ == '__main__':
                 results = [spine, offset, centroid, longest]
                 min_r = min(results, key=lambda r: r[0])[0]
                 min_s = min(results, key=lambda r: r[1])[1]
-
+                print(j)
                 for i in range(len(results)):
                     if results[i][0] == min_r:
                         c_r[i] += 1
                     if results[i][1] == min_s:
                         c_s[i] += 1
-
+                ss += 1
                 s += 1
             except TargetError as e:
                 exceptions += 1
-            if j % print_cycle == 0:
+            if j+1 % print_cycle == 0:
                 time_elapsed = time.time() - start_time
                 percentage = j/max_s
                 time_est = time_elapsed/percentage
@@ -115,7 +116,7 @@ if __name__ == '__main__':
                 s = 0
     end_time = time.time()
     good_structs = j - exceptions
-    print(f'successful structs: {j-good_structs}')
+    print(f'successful structs: {good_structs} ')
     print(f'robot_moves: '+'|'.join(f'{r}->{r/good_structs:.2%}' for r in c_r))
     print(f'scaffold updates: '+'|'.join(f'{s}->{s/good_structs:.2%}' for s in c_s))
     # print(f'check was true in  {c} cases -> {c/(j-exceptions):.2%} of the valid runs')
