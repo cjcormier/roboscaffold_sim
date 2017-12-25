@@ -75,9 +75,8 @@ if __name__ == '__main__':
     exceptions = 0
     prev_time = 0
     j = -1
-    ss=0
     with open(f'{dim}_grid_result.csv', 'w') as file:
-        s = 0
+        good_structs = 0
         print_cycle = 10000
         c_r = [0]*4
         c_s = [0]*4
@@ -89,33 +88,35 @@ if __name__ == '__main__':
                 offset = BasicSimulationAnalysis.analyze_sim(struct, OffsetSpineStrat)
                 centroid = BasicSimulationAnalysis.analyze_sim(struct, CentroidOffsetSpineStrat)
                 longest = BasicSimulationAnalysis.analyze_sim(struct, LongestSpineStrat)
-
                 results = [spine, offset, centroid, longest]
                 min_r = min(results, key=lambda r: r[0])[0]
                 min_s = min(results, key=lambda r: r[1])[1]
-                print(j)
                 for i in range(len(results)):
                     if results[i][0] == min_r:
                         c_r[i] += 1
                     if results[i][1] == min_s:
                         c_s[i] += 1
-                ss += 1
-                s += 1
+                good_structs += 1
+                file.write(f'{j},')
+                for r, s in results:
+                    file.write(f'{r},')
+                    file.write(f'{s},')
+                file.write('\n')
             except TargetError as e:
                 exceptions += 1
-            if j+1 % print_cycle == 0:
+            if (j+1) % print_cycle == 0:
                 time_elapsed = time.time() - start_time
                 percentage = j/max_s
                 time_est = time_elapsed/percentage
                 time_remaining = time_est-time_elapsed
 
                 print(f'{percentage:.2%} {j-exceptions}/{j} {((j-exceptions)/j):.2%} '
-                      f'{(s/print_cycle):.2%} {time_elapsed-prev_time:.0f}s {time_elapsed:.0f}s {int(time_est)}s '
+                      f'{(good_structs/print_cycle):.2%} {time_elapsed-prev_time:.0f}s {time_elapsed:.0f}s {int(time_est)}s '
                       f'{int(time_remaining)}s')
                 prev_time = time_elapsed
                 s = 0
     end_time = time.time()
-    good_structs = j - exceptions
+    good_structs = j - exceptions + 1
     print(f'successful structs: {good_structs} ')
     print(f'robot_moves: '+'|'.join(f'{r}->{r/good_structs:.2%}' for r in c_r))
     print(f'scaffold updates: '+'|'.join(f'{s}->{s/good_structs:.2%}' for s in c_s))

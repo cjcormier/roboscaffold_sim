@@ -35,11 +35,12 @@ class LongestSpineStrat(OffsetSpineStrat):
                 elif value == row_value:
                     row_indicies.append(i+min_y)
 
-            row_value = centroid_y - row_indicies[0]
+            row_value = abs(centroid_y - row_indicies[0])
             row = row_indicies[0]
             for curr_row in row_indicies[1:]:
-                if centroid_y - curr_row < row_value:
+                if abs(centroid_y - curr_row) < row_value:
                     row = curr_row
+                    row_value = abs(centroid_y - curr_row)
             offset = Coordinate(1 - min_x, -row)
 
             target = [coord + offset for coord in target]

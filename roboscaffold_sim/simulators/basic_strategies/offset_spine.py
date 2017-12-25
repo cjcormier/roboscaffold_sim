@@ -28,7 +28,7 @@ class OffsetSpineStrat(SpineStrat):
             min_x = min(coord.x for coord in target)
             min_y = min(coord.y for coord in target)
             max_y = max(coord.y for coord in target)
-            offset = Coordinate(1 - min_x, -(max_y - min_y+1)//2)
+            offset = Coordinate(1 - min_x, -int(round((max_y - min_y)/2)))
 
             target = [coord + offset for coord in target]
 
