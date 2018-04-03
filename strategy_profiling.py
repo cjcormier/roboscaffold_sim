@@ -70,7 +70,7 @@ def add_outer_struct(dimension, n, structure):
 
 
 if __name__ == '__main__':
-    dim = 4
+    dim = 5
     max_s = max_structs(dim)
     print(max_s)
     start_time = time.time()
@@ -117,6 +117,7 @@ if __name__ == '__main__':
                       f'{(good_structs/print_cycle):.2%} {time_elapsed-prev_time:.0f}s '
                       f'{time_elapsed:.0f}s {int(time_est)}s '
                       f'{int(time_remaining)}s')
+                good_structs = 0
                 prev_time = time_elapsed
                 s = 0
     end_time = time.time()
