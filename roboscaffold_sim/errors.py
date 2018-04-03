@@ -24,7 +24,7 @@ class GoalError(RoboScaffoldingError):
         message -- explanation of the error
     """
 
-    def __init__(self, message: str)  -> None:
+    def __init__(self, message: str) -> None:
         self.message = message
 
 
